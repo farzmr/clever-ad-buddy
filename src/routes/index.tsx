@@ -1,24 +1,19 @@
 import "@/lib/fonts";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { campaigns } from "@/lib/mock-data";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { AgentLoading } from "@/components/AgentLoading";
-import { CreativeAnalyzer } from "@/components/CreativeAnalyzer";
-import { PerformanceStats } from "@/components/PerformanceStats";
-import { AutomationActions } from "@/components/AutomationActions";
 import { Sparkles, Zap, Eye, Target, Megaphone } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "AdTech Multi-Agent Optimizer" },
+      { title: "AdPilot — Multi-Agent Ad Optimizer" },
       { name: "description", content: "AI agents that analyze, segment, and optimize ad campaigns in one click." },
-      { property: "og:title", content: "AdTech Multi-Agent Optimizer" },
+      { property: "og:title", content: "AdPilot — Multi-Agent Ad Optimizer" },
       { property: "og:description", content: "AI agents that analyze, segment, and optimize ad campaigns in one click." },
     ],
   }),
@@ -26,7 +21,6 @@ export const Route = createFileRoute("/")({
 });
 
 type Focus = "awareness" | "conversion" | "traffic";
-type Phase = "idle" | "thinking" | "done";
 
 function statusBadge(status: string) {
   const map: Record<string, string> = {
@@ -44,32 +38,17 @@ const focusMeta: Record<Focus, { icon: typeof Eye; label: string }> = {
 };
 
 function Index() {
+  const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState(campaigns[0].id);
-  const [name, setName] = useState(campaigns[0].name);
   const [focus, setFocus] = useState<Focus>("conversion");
-  const [phase, setPhase] = useState<Phase>("idle");
-
-  const onPickCampaign = (id: string) => {
-    setSelectedId(id);
-    const c = campaigns.find((x) => x.id === id);
-    if (c) setName(c.name);
-    setPhase("idle");
-  };
 
   const runAgents = () => {
-    setPhase("thinking");
-    setTimeout(() => {
-      setPhase("done");
-      requestAnimationFrame(() => {
-        document.getElementById("results")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-    }, 3200);
+    navigate({ to: "/optimize", search: { id: selectedId, focus } });
   };
 
   return (
     <div className="min-h-screen">
-      {/* Header */}
-      <header className="border-b border-border/40 backdrop-blur-md sticky top-0 z-40 bg-background/60">
+      <header className="border-b border-border/40 backdrop-blur-md sticky top-0 z-40 bg-background/70">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="h-9 w-9 rounded-xl gradient-bg grid place-items-center">
@@ -87,7 +66,6 @@ function Index() {
       </header>
 
       <main className="max-w-7xl mx-auto px-6 py-10 space-y-10">
-        {/* Hero / control panel */}
         <section className="grid lg:grid-cols-[1.2fr_1fr] gap-6">
           <div>
             <h1 className="text-4xl md:text-5xl font-semibold leading-tight">
@@ -105,7 +83,7 @@ function Index() {
             <div className="space-y-4">
               <div>
                 <Label htmlFor="campaign" className="text-xs mb-1.5 block">Campaign</Label>
-                <Select value={selectedId} onValueChange={onPickCampaign}>
+                <Select value={selectedId} onValueChange={setSelectedId}>
                   <SelectTrigger id="campaign"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {campaigns.map((c) => (
@@ -116,11 +94,6 @@ function Index() {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="name" className="text-xs mb-1.5 block">Campaign name</Label>
-                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
               </div>
 
               <div>
@@ -135,8 +108,8 @@ function Index() {
                         onClick={() => setFocus(k)}
                         className={`rounded-xl border px-3 py-3 text-xs font-medium transition flex flex-col items-center gap-1.5 ${
                           active
-                            ? "border-primary/60 bg-primary/15 text-foreground"
-                            : "border-border/60 text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                            ? "border-primary/60 bg-primary/10 text-primary"
+                            : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
                         }`}
                       >
                         <Icon className="h-4 w-4" />
@@ -149,17 +122,15 @@ function Index() {
 
               <Button
                 onClick={runAgents}
-                disabled={phase === "thinking"}
-                className="w-full h-12 text-base font-semibold gradient-bg text-white border-0 hover:opacity-95 disabled:opacity-60"
+                className="w-full h-12 text-base font-semibold gradient-bg text-white border-0 hover:opacity-95"
               >
                 <Sparkles className="h-4 w-4 mr-2" />
-                {phase === "thinking" ? "Agents working…" : "Launch Optimization"}
+                Launch Optimization
               </Button>
             </div>
           </div>
         </section>
 
-        {/* Campaigns table */}
         <section className="glass rounded-3xl p-6 md:p-8">
           <header className="flex items-center justify-between mb-5">
             <div>
@@ -184,7 +155,7 @@ function Index() {
                 {campaigns.map((c) => (
                   <tr
                     key={c.id}
-                    onClick={() => onPickCampaign(c.id)}
+                    onClick={() => setSelectedId(c.id)}
                     className={`border-b border-border/30 cursor-pointer transition ${
                       selectedId === c.id ? "bg-primary/10" : "hover:bg-primary/5"
                     }`}
@@ -205,22 +176,6 @@ function Index() {
             </table>
           </div>
         </section>
-
-        {/* Loading / Results */}
-        {phase === "thinking" && <AgentLoading />}
-
-        {phase === "done" && (
-          <div id="results" className="space-y-8 scroll-mt-24">
-            <div className="flex items-center gap-3">
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
-              <span className="text-xs uppercase tracking-widest text-primary font-medium">Optimization Report</span>
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
-            </div>
-            <CreativeAnalyzer />
-            <PerformanceStats />
-            <AutomationActions />
-          </div>
-        )}
 
         <footer className="text-center text-xs text-muted-foreground pt-6 pb-2">
           Mock prototype · numbers are illustrative
