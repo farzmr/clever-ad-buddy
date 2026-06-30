@@ -107,9 +107,9 @@ export interface Segment {
 }
 
 export const topSegments: Segment[] = [
-  { device: "Mobile — iOS", time: "Weekday 6pm–10pm", impressions: 184320, clicks: 9821, conversions: 612, spend: 4280, cpc: 6.99 },
-  { device: "Desktop", time: "Weekday 12pm–2pm", impressions: 76210, clicks: 3104, conversions: 198, spend: 2940, cpc: 14.85 },
-  { device: "Mobile — Android", time: "Weekend 9am–12pm", impressions: 142005, clicks: 4218, conversions: 84, spend: 3120, cpc: 37.14 },
+  { device: "Mobile", time: "Night", impressions: 184320, clicks: 9821, conversions: 612, spend: 4280, cpc: 6.99 },
+  { device: "Desktop", time: "Afternoon", impressions: 76210, clicks: 3104, conversions: 198, spend: 2940, cpc: 14.85 },
+  { device: "Tablet", time: "Morning", impressions: 142005, clicks: 4218, conversions: 84, spend: 3120, cpc: 37.14 },
 ];
 
 export interface BeforeAfter {
@@ -122,15 +122,15 @@ export interface BeforeAfter {
 export const automationChanges: BeforeAfter[] = [
   {
     label: "Primary device allocation",
-    before: "40% Mobile-iOS / 35% Android / 25% Desktop",
-    after: "62% Mobile-iOS / 18% Android / 20% Desktop",
-    reason: "iOS converts at 6.2% vs Android 2.0% — shifted spend to highest CPA-efficient device.",
+    before: "35% Mobile / 25% Tablet / 40% Desktop",
+    after: "62% Mobile / 8% Tablet / 30% Desktop",
+    reason: "Mobile converts at 6.2% vs Tablet 2.0% — shifted spend to highest CPA-efficient device.",
   },
   {
-    label: "Dayparting schedule",
-    before: "Always-on 24/7",
-    after: "Weekday 11am–10pm + Weekend 9am–1pm",
-    reason: "92% of conversions happen in these windows. Off-hours wasted ~$1,840/wk.",
+    label: "Time-of-day schedule",
+    before: "Always-on (Morning + Afternoon + Night)",
+    after: "Afternoon + Night only",
+    reason: "92% of conversions happen in Afternoon and Night. Morning slots wasted ~$1,840/wk.",
   },
   {
     label: "Active ad set",
