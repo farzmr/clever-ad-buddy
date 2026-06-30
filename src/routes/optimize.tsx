@@ -12,7 +12,11 @@ import { PerformanceStats } from "@/components/PerformanceStats";
 import { AutomationActions } from "@/components/AutomationActions";
 import { ArrowLeft, Sparkles, Zap, Eye, Target, Megaphone } from "lucide-react";
 
+type Focus = "awareness" | "conversion" | "traffic";
 const searchSchema = z.object({
+  id: z.string().default(""),
+  focus: z.enum(["awareness", "conversion", "traffic"]).default("conversion") as z.ZodType<Focus>,
+});
   id: z.string().default(""),
   focus: z.enum(["awareness", "conversion", "traffic"]).default("conversion"),
 });
