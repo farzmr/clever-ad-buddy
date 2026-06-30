@@ -59,7 +59,7 @@ export function PerformanceStats() {
           <div className="font-semibold">{best.device} — {best.time}</div>
           <p className="text-sm text-muted-foreground mt-2">
             {usd(best.cpc)} per conversion at {((best.conversions / best.clicks) * 100).toFixed(1)}% CVR.
-            iOS evening commute is your gold mine — high intent, low friction checkout.
+            Mobile at night is your gold mine — high intent, low friction checkout.
           </p>
         </div>
         <div className="rounded-2xl border border-destructive/40 bg-destructive/5 p-5">
@@ -69,7 +69,7 @@ export function PerformanceStats() {
           </div>
           <div className="font-semibold">{worst.device} — {worst.time}</div>
           <p className="text-sm text-muted-foreground mt-2">
-            {usd(worst.cpc)} per conversion — 5.3× the best segment. Android weekend mornings show
+            {usd(worst.cpc)} per conversion — 5.3× the best segment. Tablet morning sessions show
             high clicks but low purchase intent (window-shopping behavior).
           </p>
         </div>
