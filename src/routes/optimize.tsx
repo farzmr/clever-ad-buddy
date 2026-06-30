@@ -36,7 +36,9 @@ const focusMeta = {
 } as const;
 
 function OptimizePage() {
-  const { id, focus } = Route.useSearch();
+  const search = Route.useSearch();
+  const id = search.id as string;
+  const focus = (search.focus ?? "conversion") as Focus;
   const campaign = campaigns.find((c) => c.id === id) ?? campaigns[0];
   const FocusIcon = focusMeta[focus].icon;
 
