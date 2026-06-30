@@ -17,9 +17,6 @@ const searchSchema = z.object({
   id: z.string().default(""),
   focus: z.enum(["awareness", "conversion", "traffic"]).default("conversion") as z.ZodType<Focus>,
 });
-  id: z.string().default(""),
-  focus: z.enum(["awareness", "conversion", "traffic"]).default("conversion"),
-});
 
 export const Route = createFileRoute("/optimize")({
   validateSearch: searchSchema,
