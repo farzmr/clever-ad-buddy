@@ -1,8 +1,9 @@
 import "@/lib/fonts";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { z } from "zod";
-import { campaigns } from "@/lib/mock-data";
+import { fetchCampaigns, triggerOptimization, type OptimizeResponse } from "@/lib/api";
+import { type Campaign } from "@/lib/mock-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -39,22 +40,44 @@ function OptimizePage() {
   const search = Route.useSearch();
   const id = search.id as string;
   const focus = (search.focus ?? "conversion") as Focus;
-  const campaign = campaigns.find((c) => c.id === id) ?? campaigns[0];
-  const FocusIcon = focusMeta[focus].icon;
+  const FocusIcon = focusMeta[focus]?.icon || Target;
 
-  const [done, setDone] = useState(false);
+  const [campaign, setCampaign] = useState<Campaign | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [result, setResult] = useState<OptimizeResponse | null>(null);
 
-  // kick off the thinking phase
-  useState(() => {
-    setTimeout(() => setDone(true), 3000);
-  });
+  useEffect(() => {
+    let active = true;
+
+    // Load campaign details
+    fetchCampaigns().then((list) => {
+      if (!active) return;
+      const found = list.find((c) => c.id === id) || list[0];
+      setCampaign(found);
+    });
+
+    // Run the multi-agent optimization
+    triggerOptimization(id, focus).then((res) => {
+      if (!active) return;
+      // Allow user to appreciate the agent thinking stages briefly
+      setTimeout(() => {
+        if (!active) return;
+        setResult(res);
+        setLoading(false);
+      }, 2500);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [id, focus]);
 
   return (
     <div className="min-h-screen">
       <header className="border-b border-border/40 backdrop-blur-md sticky top-0 z-40 bg-background/70">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl gradient-bg grid place-items-center">
+            <div className="h-9 w-9 rounded-xl gradient-bg grid place-items-center shadow-lg shadow-primary/20">
               <Zap className="h-5 w-5 text-white" />
             </div>
             <div>
@@ -64,7 +87,7 @@ function OptimizePage() {
           </div>
           <Link to="/">
             <Button variant="outline" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-1" /> Back to campaigns
+              <ArrowLeft className="h-4 w-4 mr-1.5" /> Back to campaigns
             </Button>
           </Link>
         </div>
@@ -76,26 +99,26 @@ function OptimizePage() {
             <div>
               <div className="text-xs uppercase tracking-widest text-muted-foreground mb-2">Campaign</div>
               <h1 className="text-3xl font-semibold">
-                {campaign.name}
+                {campaign?.name || id}
               </h1>
               <div className="flex flex-wrap gap-2 mt-3 text-sm text-muted-foreground">
-                <span className="font-mono text-primary">{campaign.id}</span>
+                <span className="font-mono text-primary font-bold">{campaign?.id || id}</span>
                 <span>·</span>
-                <span>{campaign.channel}</span>
+                <span>{campaign?.channel || "Meta Ads"}</span>
                 <span>·</span>
-                <span>${campaign.budget.toLocaleString()} budget</span>
+                <span>${(campaign?.budget || 8000).toLocaleString()} budget</span>
               </div>
             </div>
-            <Badge variant="outline" className="border-primary/40 text-primary">
-              <FocusIcon className="h-3 w-3 mr-1" />
-              Focus: {focusMeta[focus].label}
+            <Badge variant="outline" className="border-primary/40 text-primary capitalize font-medium py-1 px-3">
+              <FocusIcon className="h-3.5 w-3.5 mr-1.5" />
+              Focus: {focusMeta[focus]?.label || focus}
             </Badge>
           </div>
         </section>
 
-        {!done && <AgentLoading />}
+        {loading && <AgentLoading />}
 
-        {done && (
+        {!loading && result && (
           <Tabs defaultValue="agent1" className="space-y-6">
             <TabsList className="grid w-full grid-cols-3 h-auto p-1.5 bg-card border border-border">
               <TabsTrigger value="agent1" className="flex-col gap-1 py-3 data-[state=active]:gradient-bg data-[state=active]:text-white">
@@ -121,9 +144,19 @@ function OptimizePage() {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="agent1"><CreativeAnalyzer /></TabsContent>
-            <TabsContent value="agent2"><PerformanceStats /></TabsContent>
-            <TabsContent value="agent3"><AutomationActions /></TabsContent>
+            <TabsContent value="agent1">
+              <CreativeAnalyzer ads={result.analyzedAds} summary={result.creativeAnalysis} />
+            </TabsContent>
+            <TabsContent value="agent2">
+              <PerformanceStats performance={result.performance} summary={result.performanceAnalysis} />
+            </TabsContent>
+            <TabsContent value="agent3">
+              <AutomationActions
+                generatedAds={result.generatedAds}
+                appliedChanges={result.appliedChanges}
+                summary={result.generatorSummary}
+              />
+            </TabsContent>
           </Tabs>
         )}
       </main>

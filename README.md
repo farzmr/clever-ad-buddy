@@ -1,110 +1,78 @@
 # AdPilot — Multi-Agent Ad Optimizer
 
-An interactive prototype of an AdTech optimization copilot. You pick a campaign and an
-optimization focus, hit **Launch Optimization**, and three agents take over: one reads the
-creative, one reads the performance data, one acts on both — generating new ads and
-rewriting the media plan, with every change shown as a before/after diff.
+A full-stack AdTech optimization copilot combining a modern Lovable frontend with a Python multi-agent backend powered by Google ADK and Gemini models.
 
-> Prototype: all campaigns, ads and metrics are mock data in `src/lib/mock-data.ts`.
-> The numbers are illustrative, not real results.
+You pick a campaign and an optimization focus, hit **Launch Optimization**, and three agents take over:
+1. **Agent 1 · Creative Analyzer** — evaluates ad copy quality, flags weak elements, and produces actionable recommendations.
+2. **Agent 2 · Performance Stats** — segments performance by device and time of day, uncovering top-converting windows and cost-inefficient waste.
+3. **Agent 3 · Automation & Generation Actions** — pauses underperforming ads, creates high-intent new variants, renders display creative, and rewrites campaign targeting with before/after diffs.
 
-## The flow
+---
 
-1. **Home (`/`)** — a campaign table (ID, name, channel, current budget, status, start date)
-   plus a focus picker: **Awareness**, **Conversion** or **Traffic**. Pick a row or use the
-   dropdown, then launch.
-2. **Thinking** — the run moves to `/optimize?id=…&focus=…`, where an animated panel walks
-   through what each agent is doing while the report assembles.
-3. **Report (`/optimize`)** — three tabs, one per agent:
-   - **Agent 1 · Creative Analyzer** — scores every ad, flags clickbait headlines, weak
-     CTAs, low-res creative and punctuation spam, and lists concrete fixes. Click an ad to
-     see its preview.
-   - **Agent 2 · Performance Stats** — breaks performance into segments of
-     **Device** (Mobile / Desktop / Tablet) × **Time** (Morning / Afternoon / Night):
-     impressions, clicks, conversions, spend and CPC, so the best-performing slice is obvious.
-   - **Agent 3 · Automation & Generation** — two parts. *Generation* creates two new ads
-     (new copy + new creative) modelled on the best performer. *Automation* lists the actions
-     taken: pausing low-performing ads, promoting the new ones, and shifting device and
-     time-of-day allocation to the winning segments — each as **before → after** with the
-     reason behind it.
+## Architecture
 
-## Stack
+```
+clever-ad-buddy/
+├── backend/                  # Embedded Python multi-agent backend
+│   ├── agents/               # Google ADK agent definitions & rate limiters
+│   ├── data/                 # Live campaign, ad, performance, & change log CSVs
+│   ├── mcp_server/           # FastMCP service for campaign and ad tooling
+│   ├── orchestrator.py       # Workflow runner, fallback engine, & image generator
+│   ├── server.py             # FastAPI REST endpoints (/api/campaigns, /api/optimize, etc.)
+│   └── requirements.txt      # Python dependencies
+├── src/                      # Modern Lovable React frontend
+│   ├── routes/               # TanStack Router pages (Index & Optimize)
+│   ├── components/           # CreativeAnalyzer, PerformanceStats, AutomationActions
+│   └── lib/api.ts            # API client connected to FastAPI backend
+└── vite.config.ts            # Vite dev server with /api proxy to FastAPI
+```
 
-| | |
-| --- | --- |
-| Framework | [TanStack Start](https://tanstack.com/start) v1 (React 19, file-based routing, SSR) |
-| Build | Vite + Nitro (Cloudflare target on `build`) |
-| Styling | Tailwind CSS v4 (design tokens in `src/styles.css`) |
-| Components | shadcn/ui primitives on Radix UI (`src/components/ui/`) |
-| Charts | Recharts |
-| Icons | lucide-react |
-| Validation | zod (route search params) |
-| Package manager | bun |
+---
 
-## Getting started
+## Getting Started
 
-Requires [bun](https://bun.sh) and Node 20+.
+### 1. Prerequisites
+- **Node.js**: v20+ (with `npm` or `bun`)
+- **Python**: 3.10+ (recommended for full Google ADK support)
 
+### 2. Backend Setup
+From the repository root:
 ```bash
-bun install
-bun run dev
+# Navigate to backend and install requirements
+cd backend
+pip install -r requirements.txt
+
+# (Optional) Set your Gemini API key in .env for live AI agent execution
+# If omitted, AdPilot automatically runs in intelligent deterministic fallback mode.
+cp .env.example .env
 ```
 
-Then open http://localhost:8080.
-
-### Scripts
-
-| Command | What it does |
-| --- | --- |
-| `bun run dev` | Dev server with hot reload |
-| `bun run build` | Production build |
-| `bun run preview` | Serve the production build |
-| `bun run lint` | ESLint over the repo |
-| `bun run format` | Prettier write |
-
-`bunfig.toml` sets a 24-hour supply-chain guard (`minimumReleaseAge`) so freshly published
-package versions are skipped during install.
-
-## Project structure
-
-```text
-src/
-├── components/
-│   ├── AgentLoading.tsx       # the "agents are thinking" animation
-│   ├── CreativeAnalyzer.tsx   # Agent 1 — ad scores, flags, fixes
-│   ├── PerformanceStats.tsx   # Agent 2 — Device × Time segments
-│   ├── AutomationActions.tsx  # Agent 3 — generated ads + before/after changes
-│   └── ui/                    # shadcn/ui primitives
-├── lib/
-│   ├── mock-data.ts           # campaigns, ads, segments, automation changes
-│   ├── fonts.ts               # fontsource imports
-│   └── utils.ts               # cn() helper
-├── routes/
-│   ├── __root.tsx             # app shell
-│   ├── index.tsx              # campaign list + focus picker + launch
-│   └── optimize.tsx           # agent run + 3-tab report
-├── router.tsx
-├── server.ts                  # SSR entry / error wrapper
-├── start.ts                   # client start hooks
-└── styles.css                 # Tailwind v4 theme + tokens
+Start the backend server:
+```bash
+python server.py
+# Running on http://127.0.0.1:8000
 ```
 
-## Wiring real data
+### 3. Frontend Setup
+In a separate terminal (or via root):
+```bash
+npm install
+npm run dev
+# Running on http://localhost:5173
+```
 
-Everything the UI reads comes from four exports in `src/lib/mock-data.ts`:
+Alternatively, to run both together:
+```bash
+npm run dev:all
+```
 
-| Export | Shape | Used by |
-| --- | --- | --- |
-| `campaigns` | `Campaign[]` — id, name, channel, budget, status, startDate | home table |
-| `adsByCampaign` | `Record<string, Ad[]>` — copy, creative, qualityScore, flagged, improvements | Agent 1 |
-| `topSegments` | `Segment[]` — device, time, impressions, clicks, conversions, spend, cpc | Agent 2 |
-| `automationChanges` | `BeforeAfter[]` — label, before, after, reason | Agent 3 |
+---
 
-Swap those for server functions or a route loader backed by your ad platform APIs and the
-presentation layer keeps working unchanged.
+## Features
 
-## Notes
-
-- `src/routeTree.gen.ts` is generated by the router plugin — don't edit it by hand.
-- The `optimize` route reads `id` and `focus` from the URL, so a report is shareable and
-  refresh-safe.
+- **Live CSV Datasets**: Backed by `campaigns.csv`, `ads.csv`, `ad_performance.csv`, and `change_log.csv`.
+- **One-Click Reset**: Instant dataset restoration to clean baseline states via the UI or `POST /api/reset`.
+- **Multi-Agent Orchestration**: Sequential execution through Google ADK agents using FastMCP tools.
+- **Dynamic Segment Intelligence**: Real-time calculation of CTR, CVR, and cost per conversion across device × time dimensions.
+- **Automated Generation & Diffing**: Generates new copy and display ad images, recording audit logs in `change_log.csv`.
+- **Dual Execution Engine**: Runs live Gemini 3.1 Flash / Imagen agents when API keys are provided, with zero-crash local fallback when offline.

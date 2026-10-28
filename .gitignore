@@ -37,3 +37,14 @@ dist-ssr
 # Lovable editor metadata / workspace state
 .lovable/
 .workspace/
+
+# Python & Virtual Environments
+backend/venv/
+venv/
+__pycache__/
+*.py[cod]
+.env
+.env.local
+backend/.env
+backend/generated_ads/*.png
+backend/generated_ads/*.jpg
