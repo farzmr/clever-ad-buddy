@@ -116,7 +116,7 @@ def reset_datasets():
             def should_keep(ad_id):
                 try:
                     if isinstance(ad_id, str) and ad_id.startswith("A"):
-                        return int(ad_id[1:]) <= 21
+                        return int(ad_id[1:]) <= 20
                 except (ValueError, TypeError):
                     pass
                 return True
@@ -257,6 +257,13 @@ def create_local_fallback_image(headline: str, body: str, filename: str):
     draw.text((75, 494), "Shop the Drop ➔", fill=(255, 255, 255, 255), font=font_cta)
     
     img.save(filepath)
+    public_images_dir = os.path.join(os.path.dirname(BASE_DIR), "public", "images")
+    if os.path.exists(os.path.dirname(public_images_dir)):
+        os.makedirs(public_images_dir, exist_ok=True)
+        try:
+            img.save(os.path.join(public_images_dir, filename))
+        except Exception:
+            pass
     return filepath
 
 def generate_ad_creative_image(prompt: str, headline: str, body: str, filename: str) -> tuple[str, str, str]:
@@ -342,10 +349,8 @@ def execute_fallback_optimization(campaign_id: str, focus: str = "conversion") -
     for _, ad in camp_ads.iterrows():
         analysis = get_ad_analysis(ad["ad_id"])
         scored.append((ad, analysis["quality"]))
-    scored.sort(key=lambda x: x[1])
-    
-    worst_ad, worst_score = scored[0]
-    top_ad, top_score = scored[-1]
+    worst_ad, worst_score = min(scored, key=lambda x: x[1])
+    top_ad, top_score = max(scored, key=lambda x: x[1])
     
     # Pause lowest performing ad
     ads_df.loc[ads_df["ad_id"] == worst_ad["ad_id"], "status"] = "paused"
@@ -380,7 +385,7 @@ def execute_fallback_optimization(campaign_id: str, focus: str = "conversion") -
         "body_text": template["body"],
         "cta": template["cta"],
         "image_size": "300x250",
-        "image_url": f"/api/images/{image_filename}",
+        "image_url": f"/images/{image_filename}",
         "ad_type": "display",
         "status": "active",
         "copy_tone": "conversational",
@@ -419,7 +424,7 @@ def execute_fallback_optimization(campaign_id: str, focus: str = "conversion") -
             "headline": template["headline"],
             "body": template["body"],
             "cta": template["cta"],
-            "imageUrl": f"/api/images/{image_filename}",
+            "imageUrl": f"/images/{image_filename}",
             "gradient": template["gradient"],
             "basedOn": top_ad["ad_id"],
             "note": template["note"],

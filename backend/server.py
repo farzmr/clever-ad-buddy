@@ -237,6 +237,8 @@ def get_campaign_report_data(campaign_id: str):
 
 def optimize_campaign_data(campaign_id: str, focus: str = "conversion"):
     import asyncio
+    campaign_id = normalize_campaign_id(campaign_id)
+    ads_before = get_campaign_ads_data(campaign_id)
     try:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
@@ -245,7 +247,6 @@ def optimize_campaign_data(campaign_id: str, focus: str = "conversion"):
         print(f"Workflow exception: {e}. Using deterministic fallback.")
         result = execute_fallback_optimization(campaign_id, focus)
         
-    ads = get_campaign_ads_data(campaign_id)
     perf = get_campaign_performance_data_response(campaign_id, focus)
     
     return {
@@ -255,7 +256,7 @@ def optimize_campaign_data(campaign_id: str, focus: str = "conversion"):
         "creativeAnalysis": result.get("creative_analysis", ""),
         "performanceAnalysis": result.get("performance_analysis", ""),
         "generatorSummary": result.get("generator_summary", ""),
-        "analyzedAds": ads,
+        "analyzedAds": ads_before,
         "performance": perf,
         "generatedAds": result.get("generated_ads", []),
         "appliedChanges": result.get("applied_changes", []),

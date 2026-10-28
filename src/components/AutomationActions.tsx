@@ -36,12 +36,13 @@ interface AutomationActionsProps {
 
 const defaultNewAds: GeneratedAdItem[] = [
   {
-    id: "AD-7786",
-    headline: "Light. Loud. Limited.",
-    body: "The mesh runner that's 32% lighter — now in three sunset colorways. Shipping fades fast.",
-    cta: "Claim a Pair",
+    id: "A021",
+    headline: "Redefine Your Style This Season",
+    body: "Shop our latest premium spring arrivals today. Free express shipping on all orders.",
+    cta: "Shop the Drop",
+    imageUrl: "/images/ad_new_C001.png",
     gradient: "linear-gradient(135deg,#f43f5e,#fb923c)",
-    basedOn: "AD-7781",
+    basedOn: "A001",
     note: "Sharper hook + scarcity, kept your hero gradient.",
     imageSource: "python_fallback",
     imageNotice: "You reached max Gemini image generation quota (or Gemini API key was not configured). The creative engine used Python for image generation.",
@@ -103,7 +104,12 @@ export function AutomationActions({ generatedAds: passedAds, appliedChanges: pas
                   alt={primaryAd.headline}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   onError={(e) => {
-                    (e.target as HTMLElement).style.display = "none";
+                    const imgEl = e.currentTarget;
+                    if (imgEl.src.includes("/api/images/")) {
+                      imgEl.src = imgEl.src.replace("/api/images/", "/images/");
+                    } else {
+                      imgEl.style.display = "none";
+                    }
                   }}
                 />
               ) : null}

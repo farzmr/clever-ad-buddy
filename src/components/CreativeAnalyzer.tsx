@@ -35,8 +35,10 @@ export function CreativeAnalyzer({ ads: passedAds, summary }: CreativeAnalyzerPr
   const ads = passedAds && passedAds.length > 0 ? passedAds : adsByCampaign.default;
   const [open, setOpen] = useState<Ad | null>(null);
 
-  // Identify highest quality score creative
-  const maxScore = Math.max(...ads.map((a) => a.qualityScore));
+  // Identify single highest quality score creative (strictly ONE top performer)
+  const bestAd = ads.reduce((best, curr) => (curr.qualityScore > best.qualityScore ? curr : best), ads[0]);
+  const maxScore = bestAd ? bestAd.qualityScore : 0;
+  const bestAdId = bestAd ? bestAd.id : "";
 
   return (
     <section className="glass rounded-3xl p-6 md:p-8 space-y-6">
@@ -79,7 +81,7 @@ export function CreativeAnalyzer({ ads: passedAds, summary }: CreativeAnalyzerPr
             {ads.map((ad) => {
               const flaggedList = (ad.flagged || []).filter((f) => f.toLowerCase() !== "clean");
               const isClean = flaggedList.length === 0;
-              const isBest = ad.qualityScore === maxScore;
+              const isBest = ad.id === bestAdId;
 
               return (
                 <tr
