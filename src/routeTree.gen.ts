@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OptimizeRouteImport } from './routes/optimize'
+import { Route as ReportRouteImport } from './routes/report'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +23,40 @@ const OptimizeRoute = OptimizeRouteImport.update({
   path: '/optimize',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReportRoute = ReportRouteImport.update({
+  id: '/report',
+  path: '/report',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/optimize': typeof OptimizeRoute
+  '/report': typeof ReportRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/optimize': typeof OptimizeRoute
+  '/report': typeof ReportRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/optimize': typeof OptimizeRoute
+  '/report': typeof ReportRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/optimize'
+  fullPaths: '/' | '/optimize' | '/report'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/optimize'
-  id: '__root__' | '/' | '/optimize'
+  to: '/' | '/optimize' | '/report'
+  id: '__root__' | '/' | '/optimize' | '/report'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   OptimizeRoute: typeof OptimizeRoute
+  ReportRoute: typeof ReportRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +75,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OptimizeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/report': {
+      id: '/report'
+      path: '/report'
+      fullPath: '/report'
+      preLoaderRoute: typeof ReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   OptimizeRoute: OptimizeRoute,
+  ReportRoute: ReportRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,12 +1,1 @@
 log_id,timestamp,campaign_id,change_type,target_id,details
-L001,2026-10-28T12:03:09.871248,C003,update_ad_status,A011,Paused lowest-performing ad (Score: 48)
-L002,2026-10-28T12:03:09.918234,C003,create_ad,A022,Created new ad with headline: 'Your Story Starts Here'
-L003,2026-10-28T12:03:09.948685,C003,update_campaign_targeting,C003,"Updated targeting to device: 'desktop', time_of_day: 'afternoon'"
-L004,2026-10-28T12:03:43.369862,C003,update_ad_status,A011,Paused lowest-performing ad (Score: 48)
-L005,2026-10-28T12:03:43.386704,C003,update_ad_status,A011,Paused lowest-performing ad (Score: 48)
-L006,2026-10-28T12:03:43.393323,C003,create_ad,A023,Created new ad with headline: 'Your Story Starts Here'
-L007,2026-10-28T12:03:43.401706,C003,create_ad,A023,Created new ad with headline: 'Your Story Starts Here'
-L008,2026-10-28T12:03:43.411021,C003,update_campaign_targeting,C003,"Updated targeting to device: 'desktop', time_of_day: 'afternoon'"
-L009,2026-10-28T12:18:10.718324,C003,update_ad_status,A011,Paused lowest-performing ad (Score: 48)
-L010,2026-10-28T12:18:10.746685,C003,create_ad,A024,Created new ad with headline: 'Your Story Starts Here'
-L011,2026-10-28T12:18:10.766429,C003,update_campaign_targeting,C003,"Updated targeting to device: 'desktop', time_of_day: 'afternoon'"
