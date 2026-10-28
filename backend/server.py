@@ -1,5 +1,14 @@
 import os
 import sys
+
+# Auto-switch to virtualenv python if current python is missing dependencies
+VENV_PYTHON = os.path.join(os.path.dirname(os.path.abspath(__file__)), "venv", "bin", "python")
+if os.path.exists(VENV_PYTHON) and sys.executable != VENV_PYTHON:
+    try:
+        import pandas
+    except ImportError:
+        os.execv(VENV_PYTHON, [VENV_PYTHON] + sys.argv)
+
 import json
 import urllib.parse
 from http.server import HTTPServer, SimpleHTTPRequestHandler
