@@ -174,31 +174,32 @@ function Index() {
       </header>
 
       <main className="max-w-7xl mx-auto px-6 py-10 space-y-10">
-        <section className="grid lg:grid-cols-[1.2fr_1fr] gap-6">
-          <div>
-            <h1 className="text-4xl md:text-5xl font-semibold leading-tight">
+        <section className="grid lg:grid-cols-[1.3fr_1fr] gap-6 lg:gap-8 items-start">
+          <div className="space-y-4">
+            <h1 className="text-4xl md:text-5xl font-semibold leading-tight tracking-tight">
               Three agents. <span className="gradient-text">One click.</span><br />
               Your campaigns, optimized.
             </h1>
-            <p className="text-muted-foreground mt-4 max-w-xl text-base leading-relaxed">
-              Pick a campaign, choose your focus, and let the agents analyze creative,
-              segment performance, and rewrite your media plan — automatically.
+            <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
+              AdPilot deploys three coordinated AI agents to continuously diagnose, benchmark, and scale your digital advertising portfolios in real-time. Agent 1 audits creative headlines, copy quality, and policy compliance. Agent 2 computes granular multidimensional performance across device segments and dayparting schedules to uncover wasted ad spend. Agent 3 synthesizes these findings to autonomously write high-converting creative variants and reschedule budgets for maximum conversion return.
             </p>
           </div>
 
-          <div className="glass rounded-3xl p-6">
-            <div className="text-xs uppercase tracking-widest text-muted-foreground mb-4">Run an optimization</div>
-            <div className="space-y-4">
+          <div className="glass rounded-2xl p-4 sm:p-5 shadow-sm border border-border/60">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+              Run an optimization
+            </div>
+            <div className="space-y-3">
               <div>
-                <Label htmlFor="campaign" className="text-xs mb-1.5 block">Campaign</Label>
+                <Label htmlFor="campaign" className="text-xs mb-1 block font-medium">Campaign</Label>
                 <Select value={selectedId} onValueChange={handleSelectCampaign}>
-                  <SelectTrigger id="campaign" className="w-full">
+                  <SelectTrigger id="campaign" className="w-full h-9 text-xs">
                     <SelectValue placeholder="Select campaign..." />
                   </SelectTrigger>
                   <SelectContent>
                     {campaignList.map((c) => (
                       <SelectItem key={c.id} value={c.id}>
-                        <span className="font-mono text-xs text-primary mr-2">{c.id}</span>
+                        <span className="font-mono text-xs text-primary mr-2 font-semibold">{c.id}</span>
                         {c.name}
                       </SelectItem>
                     ))}
@@ -207,8 +208,8 @@ function Index() {
               </div>
 
               <div>
-                <Label className="text-xs mb-2 block font-medium">Optimization focus</Label>
-                <div className="space-y-2.5">
+                <Label className="text-xs mb-1.5 block font-medium">Optimization focus</Label>
+                <div className="space-y-2">
                   {(Object.keys(focusMeta) as Focus[]).map((k) => {
                     const item = focusMeta[k];
                     const Icon = item.icon;
@@ -217,7 +218,7 @@ function Index() {
                       <div
                         key={k}
                         onClick={() => setFocus(k)}
-                        className={`group flex items-start gap-3 p-3.5 rounded-2xl border cursor-pointer transition select-none ${
+                        className={`group flex items-start gap-2.5 p-2.5 rounded-xl border cursor-pointer transition select-none ${
                           active
                             ? "border-primary bg-primary/10 shadow-sm ring-1 ring-primary/30"
                             : "border-border/60 bg-card/40 hover:border-primary/40 hover:bg-card/70"
@@ -225,16 +226,16 @@ function Index() {
                       >
                         <div className="mt-0.5 shrink-0">
                           <div
-                            className={`h-4 w-4 rounded-full border flex items-center justify-center transition ${
+                            className={`h-3.5 w-3.5 rounded-full border flex items-center justify-center transition ${
                               active ? "border-primary" : "border-muted-foreground/40 group-hover:border-primary/60"
                             }`}
                           >
-                            {active && <div className="h-2 w-2 rounded-full bg-primary" />}
+                            {active && <div className="h-1.5 w-1.5 rounded-full bg-primary" />}
                           </div>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <Icon className={`h-4 w-4 shrink-0 ${active ? "text-primary" : "text-muted-foreground"}`} />
+                          <div className="flex items-center gap-1.5">
+                            <Icon className={`h-3.5 w-3.5 shrink-0 ${active ? "text-primary" : "text-muted-foreground"}`} />
                             <span className={`text-xs font-semibold ${active ? "text-primary" : "text-foreground"}`}>
                               {item.label}
                             </span>
@@ -249,11 +250,11 @@ function Index() {
                 </div>
               </div>
 
-              <div className="pt-2">
+              <div className="pt-1">
                 <Button
                   onClick={() => runAgents()}
                   disabled={!selectedId}
-                  className="w-full h-12 text-base font-semibold gradient-bg text-white border-0 hover:opacity-95 shadow-lg shadow-primary/20"
+                  className="w-full h-10 text-sm font-semibold gradient-bg text-white border-0 hover:opacity-95 shadow-md shadow-primary/20"
                 >
                   <Sparkles className="h-4 w-4 mr-2" />
                   Launch Optimization
@@ -340,32 +341,37 @@ function Index() {
 
       {/* Live Campaign Report Modal Dialog */}
       <Dialog open={isReportOpen} onOpenChange={setIsReportOpen}>
-        <DialogContent className="max-w-3xl max-h-[88vh] overflow-y-auto glass border-primary/30 p-6 sm:p-8">
-          <DialogHeader className="mb-4">
-            <div className="flex items-center justify-between gap-4">
+        <DialogContent className="max-w-6xl w-[96vw] max-h-[92vh] overflow-y-auto glass border-primary/30 p-5 sm:p-7">
+          <DialogHeader className="mb-2">
+            <div className="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-border/40">
               <div>
-                <div className="text-xs uppercase tracking-widest text-primary font-semibold">Live Campaign Report</div>
-                <DialogTitle className="text-2xl font-bold mt-1 text-foreground">
-                  {reportData?.campaign?.name || "Campaign Report"}
+                <div className="text-[11px] font-bold uppercase tracking-widest text-primary">CAMPAIGN</div>
+                <DialogTitle className="text-2xl sm:text-3xl font-bold text-foreground mt-0.5">
+                  {reportData?.campaign?.name || "Campaign Details"}
                 </DialogTitle>
                 <div className="text-xs text-muted-foreground mt-1 flex items-center gap-2 flex-wrap">
-                  <span className="font-mono text-primary font-semibold">{reportData?.campaign?.id || selectedId}</span>
+                  <span className="font-mono text-primary font-bold">{reportData?.campaign?.id || selectedId}</span>
                   <span>·</span>
-                  <span>Targeting: <strong className="text-foreground capitalize">{reportData?.campaign?.device || "All"}</strong> ({reportData?.campaign?.timeOfDay || "All"})</span>
+                  <span>{reportData?.campaign?.channel || "Google Display"}</span>
                   <span>·</span>
-                  <span>Budget: <strong className="text-foreground">${Number(reportData?.campaign?.budget || 0).toLocaleString()}</strong></span>
+                  <span><strong>${Number(reportData?.campaign?.budget || 0).toLocaleString()}</strong> budget</span>
                 </div>
               </div>
-              {reportData?.campaign?.id && (
-                <Button
-                  size="sm"
-                  onClick={() => runAgents(reportData.campaign.id)}
-                  className="gradient-bg text-white text-xs font-semibold shadow-md shadow-primary/20 shrink-0"
-                >
-                  <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-                  Optimize Now
-                </Button>
-              )}
+              <div className="flex items-center gap-3">
+                <Badge variant="outline" className="border-primary/40 bg-primary/10 text-primary font-medium text-xs px-3 py-1.5 flex items-center gap-1.5">
+                  <span>🎯</span> Objective: {reportData?.campaign?.objective ? reportData.campaign.objective.charAt(0).toUpperCase() + reportData.campaign.objective.slice(1) : "Conversions"}
+                </Badge>
+                {reportData?.campaign?.id && (
+                  <Button
+                    size="sm"
+                    onClick={() => runAgents(reportData.campaign.id)}
+                    className="gradient-bg text-white text-xs font-semibold shadow-md shadow-primary/20 shrink-0"
+                  >
+                    <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+                    Optimize Now
+                  </Button>
+                )}
+              </div>
             </div>
           </DialogHeader>
 
@@ -376,8 +382,142 @@ function Index() {
             </div>
           ) : reportData ? (
             <div className="space-y-6">
-              {/* 4 Summary Metric Cards */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {/* 1. Raw Ad Performance Dataset for the campaign (from ad_performance.csv) */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2">
+                    <span className="text-lg">📊</span> Campaign Ad Performance Records
+                  </h3>
+                  <Badge variant="outline" className="font-mono text-xs">
+                    {(reportData.performanceRecords || []).length} records
+                  </Badge>
+                </div>
+
+                <div className="border border-border/60 rounded-2xl overflow-hidden bg-card/40">
+                  <div className="overflow-x-auto max-h-[380px] overflow-y-auto">
+                    <table className="w-full text-xs">
+                      <thead className="bg-muted/80 backdrop-blur sticky top-0 z-10 border-b border-border/60 text-muted-foreground uppercase tracking-wider text-[10px]">
+                        <tr>
+                          <th className="py-2.5 px-3 text-left font-semibold">#</th>
+                          <th className="py-2.5 px-3 text-left font-semibold">perf_id</th>
+                          <th className="py-2.5 px-3 text-left font-semibold">ad_id</th>
+                          <th className="py-2.5 px-3 text-left font-semibold">campaign_id</th>
+                          <th className="py-2.5 px-3 text-left font-semibold">date</th>
+                          <th className="py-2.5 px-3 text-center font-semibold">day_of_week</th>
+                          <th className="py-2.5 px-3 text-left font-semibold">device</th>
+                          <th className="py-2.5 px-3 text-left font-semibold">time_of_day</th>
+                          <th className="py-2.5 px-3 text-right font-semibold">impressions</th>
+                          <th className="py-2.5 px-3 text-right font-semibold">clicks</th>
+                          <th className="py-2.5 px-3 text-right font-semibold">ctr</th>
+                          <th className="py-2.5 px-3 text-right font-semibold">spend</th>
+                          <th className="py-2.5 px-3 text-right font-semibold">conversions</th>
+                          <th className="py-2.5 px-3 text-right font-semibold">roas</th>
+                          <th className="py-2.5 px-3 text-right font-semibold">cost_per_click</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/20 font-mono">
+                        {(reportData.performanceRecords && reportData.performanceRecords.length > 0) ? (
+                          reportData.performanceRecords.map((r, i) => (
+                            <tr key={r.perfId || i} className="hover:bg-primary/5 transition">
+                              <td className="py-2 px-3 text-muted-foreground">{r.rowIndex ?? (i + 1)}</td>
+                              <td className="py-2 px-3 text-primary font-semibold">{r.perfId}</td>
+                              <td className="py-2 px-3">{r.adId}</td>
+                              <td className="py-2 px-3">{r.campaignId}</td>
+                              <td className="py-2 px-3 text-muted-foreground">{r.date}</td>
+                              <td className="py-2 px-3 text-center text-muted-foreground">{r.dayOfWeek}</td>
+                              <td className="py-2 px-3 capitalize font-sans">{r.device}</td>
+                              <td className="py-2 px-3 capitalize font-sans">{r.timeOfDay}</td>
+                              <td className="py-2 px-3 text-right tabular-nums">{Number(r.impressions || 0).toLocaleString()}</td>
+                              <td className="py-2 px-3 text-right tabular-nums">{Number(r.clicks || 0).toLocaleString()}</td>
+                              <td className="py-2 px-3 text-right tabular-nums">{Number(r.ctr || 0).toFixed(2)}</td>
+                              <td className="py-2 px-3 text-right tabular-nums">${Number(r.spend || 0).toFixed(2)}</td>
+                              <td className="py-2 px-3 text-right tabular-nums">{r.conversions || 0}</td>
+                              <td className="py-2 px-3 text-right tabular-nums">{Number(r.roas || 0).toFixed(2)}</td>
+                              <td className="py-2 px-3 text-right tabular-nums">${Number(r.costPerClick || 0).toFixed(2)}</td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan={15} className="py-8 text-center text-muted-foreground">
+                              No performance records found for {reportData.campaign?.id || "this campaign"}.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. Raw Ads Table for the campaign with filtered columns (from ads.csv) */}
+              {(() => {
+                const targetCid = (reportData.campaign?.id || "").trim().toUpperCase();
+                const campaignAds = (reportData.ads || []).filter(
+                  (ad) => (ad.campaignId || "").trim().toUpperCase() === targetCid
+                );
+
+                return (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2">
+                        <span className="text-lg">📢</span> Active and Paused Ads
+                      </h3>
+                      <Badge variant="outline" className="font-mono text-xs">{campaignAds.length} total</Badge>
+                    </div>
+
+                    <div className="border border-border/60 rounded-2xl overflow-hidden bg-card/40">
+                      <div className="overflow-x-auto max-h-[260px] overflow-y-auto">
+                        <table className="w-full text-xs">
+                          <thead className="bg-muted/80 backdrop-blur sticky top-0 z-10 border-b border-border/60 text-muted-foreground uppercase tracking-wider text-[10px]">
+                            <tr>
+                              <th className="py-2.5 px-3 text-left font-semibold">ad_id</th>
+                              <th className="py-2.5 px-3 text-left font-semibold">headline</th>
+                              <th className="py-2.5 px-3 text-left font-semibold">body_text</th>
+                              <th className="py-2.5 px-3 text-left font-semibold">cta</th>
+                              <th className="py-2.5 px-3 text-left font-semibold">image_size</th>
+                              <th className="py-2.5 px-3 text-center font-semibold">quality_score</th>
+                              <th className="py-2.5 px-3 text-center font-semibold">status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-border/20">
+                            {campaignAds.length > 0 ? (
+                              campaignAds.map((ad, aIdx) => {
+                                const isPaused = (ad.status || "").toLowerCase() === "paused";
+                                return (
+                                  <tr key={ad.id || `ad-${aIdx}`} className="hover:bg-primary/5 transition">
+                                    <td className="py-2.5 px-3 font-mono font-bold text-primary">{ad.id}</td>
+                                    <td className="py-2.5 px-3 font-medium text-foreground max-w-[200px] truncate">{ad.headline || "—"}</td>
+                                    <td className="py-2.5 px-3 text-muted-foreground max-w-[260px] truncate">{ad.body || "—"}</td>
+                                    <td className="py-2.5 px-3 text-foreground">{ad.cta || "Learn More"}</td>
+                                    <td className="py-2.5 px-3 font-mono text-muted-foreground">{ad.imageSize || "300x250"}</td>
+                                    <td className="py-2.5 px-3 text-center font-mono font-semibold">{ad.qualityScore ?? "—"}</td>
+                                    <td className="py-2.5 px-3 text-center">
+                                      <span className={`px-2 py-0.5 rounded-full capitalize text-[10px] font-semibold border ${
+                                        isPaused ? "bg-warning/15 text-warning border-warning/30" : "bg-success/15 text-success border-success/30"
+                                      }`}>
+                                        {ad.status || "active"}
+                                      </span>
+                                    </td>
+                                  </tr>
+                                );
+                              })
+                            ) : (
+                              <tr>
+                                <td colSpan={7} className="py-6 text-center text-muted-foreground">
+                                  No ads found in ads.csv attributed to {reportData.campaign?.id || "this campaign"}.
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* 3. Summary Metric Cards & Optimization Audit Trail */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
                 <div className="p-3.5 rounded-2xl border border-border/60 bg-card/60">
                   <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Total Spend</div>
                   <div className="text-lg font-bold font-mono text-foreground mt-0.5">
@@ -409,73 +549,21 @@ function Index() {
                     <span className="text-muted-foreground text-sm font-normal"> active</span>
                   </div>
                   <div className="text-[10px] text-muted-foreground mt-0.5">
-                    {Number(reportData.summary?.pausedAdsCount || 0)} paused by optimizer
+                    {Number(reportData.summary?.pausedAdsCount || 0)} paused
                   </div>
                 </div>
               </div>
 
-              {/* Current Ads in this campaign (Only shows ads attributed to this campaign id from data/ads.csv) */}
-              {(() => {
-                const targetCid = (reportData.campaign?.id || "").trim().toUpperCase();
-                const campaignAds = (reportData.ads || []).filter(
-                  (ad) => (ad.campaignId || "").trim().toUpperCase() === targetCid
-                );
-
-                return (
-                  <div className="rounded-2xl border border-border/60 bg-card/40 p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-                        <TrendingUp className="h-4 w-4 text-primary" /> Attributed Ads for {reportData.campaign?.id || "Campaign"}
-                      </h3>
-                      <span className="text-xs text-muted-foreground font-mono">{campaignAds.length} total</span>
-                    </div>
-                    {campaignAds.length > 0 ? (
-                      <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
-                        {campaignAds.map((ad, aIdx) => {
-                          const isPaused = (ad.status || "").toLowerCase() === "paused";
-                          return (
-                            <div
-                              key={ad.id || `ad-${aIdx}`}
-                              className={`p-3 rounded-xl border flex items-center justify-between text-xs transition ${
-                                isPaused ? "border-destructive/30 bg-destructive/5 opacity-75" : "border-border/60 bg-card/60"
-                              }`}
-                            >
-                              <div className="flex items-center gap-3 min-w-0 pr-3">
-                                <span className="font-mono text-primary font-bold shrink-0">{ad.id}</span>
-                                <span className="font-medium text-foreground truncate">{ad.headline || "Ad Creative"}</span>
-                              </div>
-                              <div className="flex items-center gap-2 shrink-0">
-                                <span className="font-mono text-muted-foreground">Score: {ad.qualityScore ?? "—"}</span>
-                                <span className={`px-2 py-0.5 rounded-full capitalize text-[10px] font-semibold border ${
-                                  isPaused ? "bg-warning/15 text-warning border-warning/30" : "bg-success/15 text-success border-success/30"
-                                }`}>
-                                  {ad.status || "active"}
-                                </span>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <div className="p-4 text-center text-xs text-muted-foreground">
-                        No ads found in ads.csv attributed to {reportData.campaign?.id || "this campaign"}.
-                      </div>
-                    )}
+              {/* Optimization Audit Trail */}
+              {reportData.changes && reportData.changes.length > 0 && (
+                <div className="rounded-2xl border border-border/60 bg-card/40 p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                      <History className="h-4 w-4 text-accent" /> Optimization Audit Trail
+                    </h3>
+                    <span className="text-xs text-muted-foreground font-mono">{reportData.changes.length} events</span>
                   </div>
-                );
-              })()}
-
-              {/* Optimization Audit Trail / Change Logs */}
-              <div className="rounded-2xl border border-border/60 bg-card/40 p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-                    <History className="h-4 w-4 text-accent" /> Optimization Audit Trail
-                  </h3>
-                  <span className="text-xs text-muted-foreground">Updates with each optimization</span>
-                </div>
-
-                {reportData.changes && reportData.changes.length > 0 ? (
-                  <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+                  <div className="space-y-2 max-h-36 overflow-y-auto pr-1">
                     {reportData.changes.map((log, lIdx) => {
                       let timeStr = "Recently";
                       try {
@@ -501,12 +589,8 @@ function Index() {
                       );
                     })}
                   </div>
-                ) : (
-                  <div className="p-4 rounded-xl border border-dashed border-border text-center text-xs text-muted-foreground">
-                    No automated changes logged yet. Click &ldquo;Optimize Now&rdquo; to test the multi-agent autopilot.
-                  </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="py-6 text-center text-sm text-muted-foreground">

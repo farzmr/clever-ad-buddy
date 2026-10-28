@@ -83,6 +83,24 @@ export async function fetchCampaignPerformance(campaignId: string, focus = "conv
   }
 }
 
+export interface PerformanceRecord {
+  rowIndex?: number;
+  perfId: string;
+  adId: string;
+  campaignId: string;
+  date: string;
+  dayOfWeek: number;
+  device: string;
+  timeOfDay: string;
+  impressions: number;
+  clicks: number;
+  ctr: number;
+  spend: number;
+  conversions: number;
+  roas: number;
+  costPerClick: number;
+}
+
 export interface CampaignReportResponse {
   campaign: Campaign;
   summary: {
@@ -103,7 +121,8 @@ export interface CampaignReportResponse {
     targetId: string;
     details: string;
   }>;
-  dailyRecords: Array<{
+  performanceRecords?: PerformanceRecord[];
+  dailyRecords?: Array<{
     date: string;
     adId: string;
     device: string;
@@ -152,6 +171,110 @@ export async function fetchCampaignReport(campaignId: string): Promise<CampaignR
         changeType: "baseline_init",
         targetId: campaignId,
         details: `Loaded campaign ${campaignId} baseline datasets from ads.csv.`,
+      },
+    ],
+    performanceRecords: [
+      {
+        rowIndex: 306,
+        perfId: "P00307",
+        adId: "A005",
+        campaignId: campaignId,
+        date: "2024-06-07",
+        dayOfWeek: 5,
+        device: "mobile",
+        timeOfDay: "morning",
+        impressions: 2278,
+        clicks: 18,
+        ctr: 0.79,
+        spend: 59.14,
+        conversions: 0,
+        roas: 0.0,
+        costPerClick: 3.29,
+      },
+      {
+        rowIndex: 307,
+        perfId: "P00308",
+        adId: "A005",
+        campaignId: campaignId,
+        date: "2024-06-07",
+        dayOfWeek: 5,
+        device: "mobile",
+        timeOfDay: "afternoon",
+        impressions: 2496,
+        clicks: 140,
+        ctr: 5.61,
+        spend: 57.74,
+        conversions: 12,
+        roas: 16.77,
+        costPerClick: 0.41,
+      },
+      {
+        rowIndex: 308,
+        perfId: "P00309",
+        adId: "A005",
+        campaignId: campaignId,
+        date: "2024-06-07",
+        dayOfWeek: 5,
+        device: "mobile",
+        timeOfDay: "night",
+        impressions: 2521,
+        clicks: 55,
+        ctr: 2.18,
+        spend: 62.98,
+        conversions: 2,
+        roas: 2.61,
+        costPerClick: 1.15,
+      },
+      {
+        rowIndex: 309,
+        perfId: "P00310",
+        adId: "A005",
+        campaignId: campaignId,
+        date: "2024-06-07",
+        dayOfWeek: 5,
+        device: "desktop",
+        timeOfDay: "morning",
+        impressions: 2097,
+        clicks: 17,
+        ctr: 0.81,
+        spend: 46.31,
+        conversions: 0,
+        roas: 0.0,
+        costPerClick: 2.72,
+      },
+      {
+        rowIndex: 310,
+        perfId: "P00311",
+        adId: "A005",
+        campaignId: campaignId,
+        date: "2024-06-07",
+        dayOfWeek: 5,
+        device: "desktop",
+        timeOfDay: "afternoon",
+        impressions: 2095,
+        clicks: 120,
+        ctr: 5.73,
+        spend: 51.6,
+        conversions: 13,
+        roas: 21.38,
+        costPerClick: 0.43,
+      },
+      {
+        rowIndex: 311,
+        perfId: "P00312",
+        adId: "A005",
+        campaignId: campaignId,
+        date: "2024-06-07",
+        dayOfWeek: 5,
+        device: "desktop",
+        timeOfDay: "night",
+        impressions: 1983,
+        clicks: 45,
+        ctr: 2.27,
+        spend: 45.88,
+        conversions: 1,
+        roas: 1.92,
+        costPerClick: 1.02,
       },
     ],
     dailyRecords: [],

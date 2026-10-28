@@ -152,7 +152,7 @@ def get_campaign_report_data(campaign_id: str):
     ads = get_campaign_ads_data(campaign_id)
     
     perf_df = pd.read_csv(PERFORMANCE_FILE) if os.path.exists(PERFORMANCE_FILE) else pd.DataFrame()
-    camp_perf = perf_df[perf_df["campaign_id"].astype(str) == str(campaign_id)] if not perf_df.empty else pd.DataFrame()
+    camp_perf = perf_df[perf_df["campaign_id"].astype(str).str.strip().str.upper() == str(campaign_id).strip().upper()] if not perf_df.empty else pd.DataFrame()
     
     total_impressions = int(camp_perf["impressions"].sum()) if not camp_perf.empty else 0
     total_clicks = int(camp_perf["clicks"].sum()) if not camp_perf.empty else 0
@@ -179,19 +179,26 @@ def get_campaign_report_data(campaign_id: str):
         except Exception:
             pass
             
-    daily_records = []
+    performance_records = []
     if not camp_perf.empty:
-        sorted_perf = camp_perf.sort_values(by="date", ascending=False).head(15)
-        for _, r in sorted_perf.iterrows():
-            daily_records.append({
-                "date": str(r.get("date")),
-                "adId": str(r.get("ad_id")),
-                "device": str(r.get("device")),
-                "timeOfDay": str(r.get("time_of_day")),
-                "impressions": int(r.get("impressions", 0)),
-                "clicks": int(r.get("clicks", 0)),
-                "conversions": int(r.get("conversions", 0)),
-                "spend": float(r.get("spend", 0.0)),
+        sorted_perf = camp_perf.sort_values(by=["date", "perf_id"], ascending=[False, True])
+        for idx, r in sorted_perf.iterrows():
+            performance_records.append({
+                "rowIndex": int(idx),
+                "perfId": str(r.get("perf_id", "")),
+                "adId": str(r.get("ad_id", "")),
+                "campaignId": str(r.get("campaign_id", "")),
+                "date": str(r.get("date", "")),
+                "dayOfWeek": int(r.get("day_of_week", 0)) if pd.notnull(r.get("day_of_week")) else 0,
+                "device": str(r.get("device", "")),
+                "timeOfDay": str(r.get("time_of_day", "")),
+                "impressions": int(r.get("impressions", 0)) if pd.notnull(r.get("impressions")) else 0,
+                "clicks": int(r.get("clicks", 0)) if pd.notnull(r.get("clicks")) else 0,
+                "ctr": float(r.get("ctr", 0.0)) if pd.notnull(r.get("ctr")) else 0.0,
+                "spend": float(r.get("spend", 0.0)) if pd.notnull(r.get("spend")) else 0.0,
+                "conversions": int(r.get("conversions", 0)) if pd.notnull(r.get("conversions")) else 0,
+                "roas": float(r.get("roas", 0.0)) if pd.notnull(r.get("roas")) else 0.0,
+                "costPerClick": float(r.get("cost_per_click", 0.0)) if pd.notnull(r.get("cost_per_click")) else 0.0,
             })
             
     return {
@@ -208,7 +215,8 @@ def get_campaign_report_data(campaign_id: str):
         },
         "ads": ads,
         "changes": changes,
-        "dailyRecords": daily_records
+        "performanceRecords": performance_records,
+        "dailyRecords": performance_records[:15]
     }
 
 def optimize_campaign_data(campaign_id: str, focus: str = "conversion"):
