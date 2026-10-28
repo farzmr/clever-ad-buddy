@@ -136,6 +136,70 @@ def get_campaign_performance_data_response(campaign_id: str, focus: str = "conve
         "worstSegment": worst_seg
     }
 
+def get_campaign_report_data(campaign_id: str):
+    camps = [c for c in list_campaigns_data() if c["id"] == campaign_id]
+    camp = camps[0] if camps else None
+    
+    ads = get_campaign_ads_data(campaign_id)
+    
+    perf_df = pd.read_csv(PERFORMANCE_FILE) if os.path.exists(PERFORMANCE_FILE) else pd.DataFrame()
+    camp_perf = perf_df[perf_df["campaign_id"].astype(str) == str(campaign_id)] if not perf_df.empty else pd.DataFrame()
+    
+    total_impressions = int(camp_perf["impressions"].sum()) if not camp_perf.empty else 0
+    total_clicks = int(camp_perf["clicks"].sum()) if not camp_perf.empty else 0
+    total_conversions = int(camp_perf["conversions"].sum()) if not camp_perf.empty else 0
+    total_spend = round(float(camp_perf["spend"].sum()), 2) if not camp_perf.empty else 0.0
+    ctr = round((total_clicks / total_impressions * 100), 2) if total_impressions > 0 else 0.0
+    cpc = round((total_spend / total_conversions), 2) if total_conversions > 0 else (total_spend if total_spend > 0 else 0.0)
+    
+    changes = []
+    if os.path.exists(CHANGELOG_FILE):
+        try:
+            ch_df = pd.read_csv(CHANGELOG_FILE)
+            ch_match = ch_df[ch_df["campaign_id"].astype(str) == str(campaign_id)]
+            for _, r in ch_match.iterrows():
+                changes.append({
+                    "logId": str(r.get("log_id")),
+                    "timestamp": str(r.get("timestamp")),
+                    "changeType": str(r.get("change_type")),
+                    "targetId": str(r.get("target_id")),
+                    "details": str(r.get("details"))
+                })
+        except Exception:
+            pass
+            
+    daily_records = []
+    if not camp_perf.empty:
+        sorted_perf = camp_perf.sort_values(by="date", ascending=False).head(15)
+        for _, r in sorted_perf.iterrows():
+            daily_records.append({
+                "date": str(r.get("date")),
+                "adId": str(r.get("ad_id")),
+                "device": str(r.get("device")),
+                "timeOfDay": str(r.get("time_of_day")),
+                "impressions": int(r.get("impressions", 0)),
+                "clicks": int(r.get("clicks", 0)),
+                "conversions": int(r.get("conversions", 0)),
+                "spend": float(r.get("spend", 0.0)),
+            })
+            
+    return {
+        "campaign": camp,
+        "summary": {
+            "totalImpressions": total_impressions,
+            "totalClicks": total_clicks,
+            "totalConversions": total_conversions,
+            "totalSpend": total_spend,
+            "ctr": ctr,
+            "cpc": cpc,
+            "activeAdsCount": len([a for a in ads if a["status"] == "active"]),
+            "pausedAdsCount": len([a for a in ads if a["status"] == "paused"]),
+        },
+        "ads": ads,
+        "changes": changes,
+        "dailyRecords": daily_records
+    }
+
 def optimize_campaign_data(campaign_id: str, focus: str = "conversion"):
     import asyncio
     try:
@@ -199,6 +263,11 @@ class AdPilotRequestHandler(SimpleHTTPRequestHandler):
             cid = path.split("/")[3]
             focus = query.get("focus", ["conversion"])[0]
             self.send_json(get_campaign_performance_data_response(cid, focus))
+            return
+
+        elif path.startswith("/api/campaigns/") and path.endswith("/report"):
+            cid = path.split("/")[3]
+            self.send_json(get_campaign_report_data(cid))
             return
 
         elif path.startswith("/api/campaigns/"):

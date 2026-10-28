@@ -81,6 +81,49 @@ export async function fetchCampaignPerformance(campaignId: string, focus = "conv
   }
 }
 
+export interface CampaignReportResponse {
+  campaign: Campaign;
+  summary: {
+    totalImpressions: number;
+    totalClicks: number;
+    totalConversions: number;
+    totalSpend: number;
+    ctr: number;
+    cpc: number;
+    activeAdsCount: number;
+    pausedAdsCount: number;
+  };
+  ads: Ad[];
+  changes: Array<{
+    logId: string;
+    timestamp: string;
+    changeType: string;
+    targetId: string;
+    details: string;
+  }>;
+  dailyRecords: Array<{
+    date: string;
+    adId: string;
+    device: string;
+    timeOfDay: string;
+    impressions: number;
+    clicks: number;
+    conversions: number;
+    spend: number;
+  }>;
+}
+
+export async function fetchCampaignReport(campaignId: string): Promise<CampaignReportResponse | null> {
+  try {
+    const res = await fetch(`${API_BASE}/api/campaigns/${campaignId}/report`);
+    if (!res.ok) throw new Error("Failed to fetch report");
+    return await res.json();
+  } catch (err) {
+    console.warn("Backend report fetch failed, using fallback", err);
+    return null;
+  }
+}
+
 export async function triggerOptimization(campaignId: string, focus: string): Promise<OptimizeResponse> {
   try {
     const res = await fetch(`${API_BASE}/api/optimize`, {

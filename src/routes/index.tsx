@@ -1,13 +1,27 @@
 import "@/lib/fonts";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { fetchCampaigns, resetDatabase } from "@/lib/api";
+import { fetchCampaigns, resetDatabase, fetchCampaignReport, type CampaignReportResponse } from "@/lib/api";
 import { type Campaign } from "@/lib/mock-data";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Zap, Eye, Target, Megaphone, RotateCcw } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Sparkles,
+  Zap,
+  Eye,
+  Target,
+  Megaphone,
+  RotateCcw,
+  BarChart3,
+  TrendingUp,
+  History,
+  CheckCircle2,
+  AlertCircle,
+  ArrowRight,
+} from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
@@ -46,17 +60,26 @@ function Index() {
   const [focus, setFocus] = useState<Focus>("conversion");
   const [isResetting, setIsResetting] = useState(false);
 
+  // Campaign Report Dialog State
+  const [reportData, setReportData] = useState<CampaignReportResponse | null>(null);
+  const [reportLoading, setReportLoading] = useState(false);
+  const [isReportOpen, setIsReportOpen] = useState(false);
+
+  const loadCampaigns = async () => {
+    const data = await fetchCampaigns();
+    setCampaignList(data);
+    if (data.length > 0 && !selectedId) {
+      setSelectedId(data[0].id);
+      const obj = (data[0] as any).objective?.toLowerCase();
+      if (obj?.includes("awareness")) setFocus("awareness");
+      else if (obj?.includes("traffic")) setFocus("traffic");
+      else setFocus("conversion");
+    }
+    return data;
+  };
+
   useEffect(() => {
-    fetchCampaigns().then((data) => {
-      setCampaignList(data);
-      if (data.length > 0) {
-        setSelectedId(data[0].id);
-        const obj = (data[0] as any).objective?.toLowerCase();
-        if (obj?.includes("awareness")) setFocus("awareness");
-        else if (obj?.includes("traffic")) setFocus("traffic");
-        else setFocus("conversion");
-      }
-    });
+    loadCampaigns();
   }, []);
 
   const handleSelectCampaign = (id: string) => {
@@ -70,22 +93,38 @@ function Index() {
     }
   };
 
-  const runAgents = () => {
-    if (!selectedId) return;
-    navigate({ to: "/optimize", search: { id: selectedId, focus } });
+  const runAgents = (campaignIdToRun?: string) => {
+    const targetId = campaignIdToRun || selectedId;
+    if (!targetId) return;
+    setIsReportOpen(false);
+    navigate({ to: "/optimize", search: { id: targetId, focus } });
   };
 
   const handleResetData = async () => {
     setIsResetting(true);
     try {
       await resetDatabase();
-      const updated = await fetchCampaigns();
+      const updated = await loadCampaigns();
       setCampaignList(updated);
       toast.success("All campaigns and ads reset to baseline!");
     } catch {
       toast.error("Failed to reset database");
     } finally {
       setIsResetting(false);
+    }
+  };
+
+  const handleOpenReport = async (campaignId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setReportLoading(true);
+    setIsReportOpen(true);
+    try {
+      const rep = await fetchCampaignReport(campaignId);
+      setReportData(rep);
+    } catch (err) {
+      toast.error("Could not load campaign report");
+    } finally {
+      setReportLoading(false);
     }
   };
 
@@ -142,12 +181,23 @@ function Index() {
                     {selectedCampaign.id} — {selectedCampaign.name}
                   </div>
                   <div className="text-xs text-muted-foreground mt-1">
-                    {selectedCampaign.channel} · ${(selectedCampaign.budget || 0).toLocaleString()} budget
+                    {(selectedCampaign as any).device || "All Devices"} · ${(selectedCampaign.budget || 0).toLocaleString()} budget
                   </div>
                 </div>
-                <Badge variant="outline" className="border-primary/40 text-primary capitalize text-xs">
-                  {selectedCampaign.status}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleOpenReport(selectedCampaign.id)}
+                    className="text-xs font-medium"
+                  >
+                    <BarChart3 className="h-3.5 w-3.5 mr-1 text-primary" />
+                    View Report
+                  </Button>
+                  <Badge variant="outline" className="border-primary/40 text-primary capitalize text-xs">
+                    {selectedCampaign.status}
+                  </Badge>
+                </div>
               </div>
             )}
           </div>
@@ -199,7 +249,7 @@ function Index() {
 
               <div className="pt-2">
                 <Button
-                  onClick={runAgents}
+                  onClick={() => runAgents()}
                   disabled={!selectedId}
                   className="w-full h-12 text-base font-semibold gradient-bg text-white border-0 hover:opacity-95 shadow-lg shadow-primary/20"
                 >
@@ -211,11 +261,14 @@ function Index() {
           </div>
         </section>
 
+        {/* Campaign Table (Channel column removed, Report column added) */}
         <section className="glass rounded-3xl p-6 md:p-8">
           <header className="flex items-center justify-between mb-5 flex-wrap gap-3">
             <div>
               <h2 className="text-xl font-semibold">Your campaigns</h2>
-              <p className="text-sm text-muted-foreground">Click a row to load it into the optimizer.</p>
+              <p className="text-sm text-muted-foreground">
+                Click a row to select it, or click <strong className="text-primary">Report</strong> to view live metrics &amp; audit history.
+              </p>
             </div>
             <Badge variant="outline" className="border-border font-mono">{campaignList.length} total</Badge>
           </header>
@@ -225,12 +278,12 @@ function Index() {
                 <tr className="text-left text-xs uppercase tracking-wider text-muted-foreground border-b border-border/60">
                   <th className="py-3 pr-4 font-medium">Campaign ID</th>
                   <th className="py-3 pr-4 font-medium">Name</th>
-                  <th className="py-3 pr-4 font-medium">Channel</th>
-                  <th className="py-3 pr-4 font-medium">Device</th>
-                  <th className="py-3 pr-4 font-medium">Time of Day</th>
+                  <th className="py-3 pr-4 font-medium">Device Targeting</th>
+                  <th className="py-3 pr-4 font-medium">Schedule</th>
                   <th className="py-3 pr-4 font-medium text-right">Budget</th>
                   <th className="py-3 pr-4 font-medium">Status</th>
                   <th className="py-3 pr-4 font-medium">Start Date</th>
+                  <th className="py-3 pr-4 font-medium text-center">Report</th>
                 </tr>
               </thead>
               <tbody>
@@ -250,7 +303,6 @@ function Index() {
                       <td className="py-4 pr-4">
                         <span className={isSel ? "text-primary font-semibold" : ""}>{c.name}</span>
                       </td>
-                      <td className="py-4 pr-4 text-muted-foreground">{c.channel}</td>
                       <td className="py-4 pr-4 text-muted-foreground capitalize text-xs">{cDevice}</td>
                       <td className="py-4 pr-4 text-muted-foreground capitalize text-xs">{cTime}</td>
                       <td className="py-4 pr-4 text-right font-mono tabular-nums font-medium">${(c.budget || 0).toLocaleString()}</td>
@@ -260,6 +312,17 @@ function Index() {
                         </span>
                       </td>
                       <td className="py-4 pr-4 font-mono text-xs text-muted-foreground">{c.startDate}</td>
+                      <td className="py-4 pr-4 text-center">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={(e) => handleOpenReport(c.id, e)}
+                          className="h-8 px-2.5 text-xs text-primary hover:text-primary hover:bg-primary/10 font-semibold"
+                        >
+                          <BarChart3 className="h-3.5 w-3.5 mr-1" />
+                          View
+                        </Button>
+                      </td>
                     </tr>
                   );
                 })}
@@ -269,9 +332,159 @@ function Index() {
         </section>
 
         <footer className="text-center text-xs text-muted-foreground pt-6 pb-2">
-          AdPilot Multi-Agent Optimizer · Powered by Google ADK & Gemini
+          AdPilot Multi-Agent Optimizer · Powered by Google ADK &amp; Gemini
         </footer>
       </main>
+
+      {/* Live Campaign Report Modal Dialog */}
+      <Dialog open={isReportOpen} onOpenChange={setIsReportOpen}>
+        <DialogContent className="max-w-3xl max-h-[88vh] overflow-y-auto glass border-primary/30 p-6 sm:p-8">
+          <DialogHeader className="mb-4">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <div className="text-xs uppercase tracking-widest text-primary font-semibold">Live Campaign Report</div>
+                <DialogTitle className="text-2xl font-bold mt-1 text-foreground">
+                  {reportData?.campaign?.name || "Campaign Report"}
+                </DialogTitle>
+                <div className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
+                  <span className="font-mono text-primary font-semibold">{reportData?.campaign?.id}</span>
+                  <span>·</span>
+                  <span>Targeting: <strong className="text-foreground capitalize">{reportData?.campaign?.device}</strong> ({reportData?.campaign?.timeOfDay})</span>
+                  <span>·</span>
+                  <span>Budget: <strong className="text-foreground">${reportData?.campaign?.budget?.toLocaleString()}</strong></span>
+                </div>
+              </div>
+              {reportData?.campaign?.id && (
+                <Button
+                  size="sm"
+                  onClick={() => runAgents(reportData.campaign.id)}
+                  className="gradient-bg text-white text-xs font-semibold shadow-md shadow-primary/20 shrink-0"
+                >
+                  <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+                  Optimize Now
+                </Button>
+              )}
+            </div>
+          </DialogHeader>
+
+          {reportLoading ? (
+            <div className="py-12 text-center space-y-3">
+              <Zap className="h-8 w-8 text-primary animate-pulse mx-auto" />
+              <div className="text-sm font-medium text-muted-foreground">Loading fresh campaign records...</div>
+            </div>
+          ) : reportData ? (
+            <div className="space-y-6">
+              {/* 4 Summary Metric Cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="p-3.5 rounded-2xl border border-border/60 bg-card/60">
+                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Total Spend</div>
+                  <div className="text-lg font-bold font-mono text-foreground mt-0.5">
+                    ${reportData.summary.totalSpend.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </div>
+                </div>
+                <div className="p-3.5 rounded-2xl border border-border/60 bg-card/60">
+                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Conversions</div>
+                  <div className="text-lg font-bold font-mono text-foreground mt-0.5">
+                    {reportData.summary.totalConversions.toLocaleString()}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground mt-0.5 font-mono">
+                    CPA: ${reportData.summary.cpc.toFixed(2)}
+                  </div>
+                </div>
+                <div className="p-3.5 rounded-2xl border border-border/60 bg-card/60">
+                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Total Clicks</div>
+                  <div className="text-lg font-bold font-mono text-foreground mt-0.5">
+                    {reportData.summary.totalClicks.toLocaleString()}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground mt-0.5 font-mono">
+                    CTR: {reportData.summary.ctr.toFixed(2)}%
+                  </div>
+                </div>
+                <div className="p-3.5 rounded-2xl border border-border/60 bg-card/60">
+                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Ad Set Health</div>
+                  <div className="text-lg font-bold font-mono text-foreground mt-0.5">
+                    <span className="text-success">{reportData.summary.activeAdsCount}</span>
+                    <span className="text-muted-foreground text-sm font-normal"> active</span>
+                  </div>
+                  <div className="text-[10px] text-muted-foreground mt-0.5">
+                    {reportData.summary.pausedAdsCount} paused by optimizer
+                  </div>
+                </div>
+              </div>
+
+              {/* Current Ads in this campaign */}
+              <div className="rounded-2xl border border-border/60 bg-card/40 p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                    <TrendingUp className="h-4 w-4 text-primary" /> Active &amp; Paused Ads
+                  </h3>
+                  <span className="text-xs text-muted-foreground font-mono">{reportData.ads.length} total</span>
+                </div>
+                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                  {reportData.ads.map((ad) => {
+                    const isPaused = ad.status.toLowerCase() === "paused";
+                    return (
+                      <div
+                        key={ad.id}
+                        className={`p-3 rounded-xl border flex items-center justify-between text-xs transition ${
+                          isPaused ? "border-destructive/30 bg-destructive/5 opacity-75" : "border-border/60 bg-card/60"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 min-w-0 pr-3">
+                          <span className="font-mono text-primary font-bold shrink-0">{ad.id}</span>
+                          <span className="font-medium text-foreground truncate">{ad.headline}</span>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="font-mono text-muted-foreground">Score: {ad.qualityScore}</span>
+                          <span className={`px-2 py-0.5 rounded-full capitalize text-[10px] font-semibold border ${
+                            isPaused ? "bg-warning/15 text-warning border-warning/30" : "bg-success/15 text-success border-success/30"
+                          }`}>
+                            {ad.status}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Optimization Audit Trail / Change Logs */}
+              <div className="rounded-2xl border border-border/60 bg-card/40 p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                    <History className="h-4 w-4 text-accent" /> Optimization Audit Trail
+                  </h3>
+                  <span className="text-xs text-muted-foreground">Updates with each optimization</span>
+                </div>
+
+                {reportData.changes && reportData.changes.length > 0 ? (
+                  <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+                    {reportData.changes.map((log) => (
+                      <div key={log.logId} className="p-2.5 rounded-xl border border-border/40 bg-card/60 text-xs flex items-start gap-2.5">
+                        <CheckCircle2 className="h-4 w-4 text-success shrink-0 mt-0.5" />
+                        <div className="min-w-0 flex-1">
+                          <div className="font-medium text-foreground">{log.details}</div>
+                          <div className="text-[10px] text-muted-foreground mt-0.5 font-mono">
+                            {log.changeType} · Target: {log.targetId} · {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-xl border border-dashed border-border text-center text-xs text-muted-foreground">
+                    No automated changes logged yet. Click &ldquo;Optimize Now&rdquo; to test the multi-agent autopilot.
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="py-6 text-center text-sm text-muted-foreground">
+              No report available for this campaign.
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
