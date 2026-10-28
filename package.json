@@ -1,6 +1,8 @@
 {
-  "name": "tanstack_start_ts",
+  "name": "adpilot",
+  "version": "0.4.0",
   "private": true,
+  "description": "AdPilot — a multi-agent ad campaign optimizer prototype: pick a campaign and a focus, then watch three agents analyze creative, segment performance, and rewrite the media plan.",
   "sideEffects": false,
   "type": "module",
   "scripts": {
