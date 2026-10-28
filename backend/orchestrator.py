@@ -248,6 +248,52 @@ def create_local_fallback_image(headline: str, body: str, filename: str):
     img.save(filepath)
     return filepath
 
+def generate_ad_creative_image(prompt: str, headline: str, body: str, filename: str) -> tuple[str, str, str]:
+    """
+    Attempts to generate display ad creative via Google Gemini Imagen API.
+    If the API key is missing, or the Gemini Imagen quota limit is reached (or fails),
+    it automatically falls back to high-resolution Python PIL rendering.
+    
+    Returns:
+        (filepath, source, notice)
+        where source is 'gemini_imagen' or 'python_fallback'
+    """
+    output_dir = GENERATED_ADS_DIR
+    os.makedirs(output_dir, exist_ok=True)
+    filepath = os.path.join(output_dir, filename)
+
+    api_key = os.getenv("GEMINI_API_KEY")
+    if api_key and api_key.strip() and api_key.strip() != "your_gemini_api_key_here":
+        try:
+            print("[Image Gen] Attempting Google Gemini Imagen 3 generation...")
+            from google import genai
+            from google.genai import types
+            from io import BytesIO
+            from PIL import Image
+
+            client = genai.Client(api_key=api_key.strip())
+            response = client.models.generate_images(
+                model='imagen-3.0-generate-002',
+                prompt=prompt or f"Display advertisement banner background for {headline}. Clean modern commercial lighting.",
+                config=types.GenerateImagesConfig(
+                    number_of_images=1,
+                    aspect_ratio="1:1",
+                    output_mime_type="image/png"
+                )
+            )
+            if response.generated_images:
+                image_bytes = response.generated_images[0].image.image_bytes
+                img = Image.open(BytesIO(image_bytes)).resize((600, 600))
+                img.save(filepath)
+                return filepath, "gemini_imagen", "Generated using Google Gemini Imagen 3."
+        except Exception as e:
+            print(f"[Image Gen] Gemini Imagen quota reached or unavailable ({e}). Falling back to Python PIL.")
+
+    # Python PIL Fallback
+    create_local_fallback_image(headline, body, filename)
+    notice = "You reached the maximum Gemini image generation quota (or Gemini API key was not configured). The creative engine automatically rendered this asset using Python PIL."
+    return filepath, "python_fallback", notice
+
 def execute_fallback_optimization(campaign_id: str, focus: str = "conversion") -> dict:
     """Executes deterministic optimization adhering to adtech rules when Gemini API is unavailable."""
     # 1. Load data
@@ -285,7 +331,12 @@ def execute_fallback_optimization(campaign_id: str, focus: str = "conversion") -
     new_ad_id = f"A{str(next_id).zfill(3)}"
     image_filename = f"ad_new_{campaign_id}.png"
     
-    create_local_fallback_image(template["headline"], template["body"], image_filename)
+    _, img_source, img_notice = generate_ad_creative_image(
+        prompt=f"Modern stylish display ad for {camp['name']}, {template['headline']}",
+        headline=template["headline"],
+        body=template["body"],
+        filename=image_filename
+    )
     
     new_ad = {
         "ad_id": new_ad_id,
@@ -336,7 +387,9 @@ def execute_fallback_optimization(campaign_id: str, focus: str = "conversion") -
             "imageUrl": f"/api/images/{image_filename}",
             "gradient": template["gradient"],
             "basedOn": top_ad["ad_id"],
-            "note": template["note"]
+            "note": template["note"],
+            "imageSource": img_source,
+            "imageNotice": img_notice
         }],
         "applied_changes": [
             {

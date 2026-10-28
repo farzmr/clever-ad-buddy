@@ -47,10 +47,22 @@ function statusBadge(status: string) {
   return map[status] || map.draft;
 }
 
-const focusMeta: Record<Focus, { icon: typeof Eye; label: string }> = {
-  awareness: { icon: Eye, label: "Awareness" },
-  conversion: { icon: Target, label: "Conversion" },
-  traffic: { icon: Megaphone, label: "Traffic" },
+const focusMeta: Record<Focus, { icon: typeof Eye; label: string; desc: string }> = {
+  awareness: {
+    icon: Eye,
+    label: "Awareness",
+    desc: "Max impressions & reach across high-visibility channels.",
+  },
+  conversion: {
+    icon: Target,
+    label: "Conversion",
+    desc: "Target lowest CPA segments to maximize sales volume.",
+  },
+  traffic: {
+    icon: Megaphone,
+    label: "Traffic",
+    desc: "Drive highest click volume & CTR at optimal cost per click.",
+  },
 };
 
 function Index() {
@@ -224,23 +236,29 @@ function Index() {
 
               <div>
                 <Label className="text-xs mb-1.5 block">Optimization focus</Label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                   {(Object.keys(focusMeta) as Focus[]).map((k) => {
-                    const Icon = focusMeta[k].icon;
+                    const item = focusMeta[k];
+                    const Icon = item.icon;
                     const active = focus === k;
                     return (
                       <button
                         key={k}
                         type="button"
                         onClick={() => setFocus(k)}
-                        className={`rounded-xl border px-3 py-3 text-xs font-medium transition flex flex-col items-center gap-1.5 ${
+                        className={`rounded-2xl border p-3 text-left transition flex flex-col justify-between gap-1.5 ${
                           active
-                            ? "border-primary/60 bg-primary/10 text-primary shadow-sm"
-                            : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                            ? "border-primary bg-primary/10 text-primary shadow-sm ring-1 ring-primary/30"
+                            : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground bg-card/40"
                         }`}
                       >
-                        <Icon className="h-4 w-4" />
-                        {focusMeta[k].label}
+                        <div className="flex items-center gap-1.5 font-bold text-xs text-foreground">
+                          <Icon className={`h-4 w-4 ${active ? "text-primary" : "text-muted-foreground"}`} />
+                          <span>{item.label}</span>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground leading-tight">
+                          {item.desc}
+                        </p>
                       </button>
                     );
                   })}

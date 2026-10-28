@@ -22,6 +22,8 @@ export interface OptimizeResponse {
     gradient?: string;
     basedOn?: string;
     note?: string;
+    imageSource?: "gemini_imagen" | "python_fallback";
+    imageNotice?: string;
   }>;
   appliedChanges: BeforeAfter[];
 }

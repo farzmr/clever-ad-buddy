@@ -20,6 +20,7 @@ DATA_DIR = os.path.join(BASE_DIR, "data")
 CAMPAIGNS_FILE = os.path.join(DATA_DIR, "campaigns.csv")
 ADS_FILE = os.path.join(DATA_DIR, "ads.csv")
 PERFORMANCE_FILE = os.path.join(DATA_DIR, "ad_performance.csv")
+CHANGELOG_FILE = os.path.join(DATA_DIR, "change_log.csv")
 GENERATED_ADS_DIR = os.path.join(BASE_DIR, "generated_ads")
 os.makedirs(GENERATED_ADS_DIR, exist_ok=True)
 
