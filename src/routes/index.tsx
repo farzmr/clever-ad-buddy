@@ -430,41 +430,56 @@ function Index() {
                 </div>
               </div>
 
-              {/* Current Ads in this campaign */}
-              <div className="rounded-2xl border border-border/60 bg-card/40 p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-                    <TrendingUp className="h-4 w-4 text-primary" /> Active &amp; Paused Ads
-                  </h3>
-                  <span className="text-xs text-muted-foreground font-mono">{reportData.ads.length} total</span>
-                </div>
-                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                  {reportData.ads.map((ad) => {
-                    const isPaused = ad.status.toLowerCase() === "paused";
-                    return (
-                      <div
-                        key={ad.id}
-                        className={`p-3 rounded-xl border flex items-center justify-between text-xs transition ${
-                          isPaused ? "border-destructive/30 bg-destructive/5 opacity-75" : "border-border/60 bg-card/60"
-                        }`}
-                      >
-                        <div className="flex items-center gap-3 min-w-0 pr-3">
-                          <span className="font-mono text-primary font-bold shrink-0">{ad.id}</span>
-                          <span className="font-medium text-foreground truncate">{ad.headline}</span>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <span className="font-mono text-muted-foreground">Score: {ad.qualityScore}</span>
-                          <span className={`px-2 py-0.5 rounded-full capitalize text-[10px] font-semibold border ${
-                            isPaused ? "bg-warning/15 text-warning border-warning/30" : "bg-success/15 text-success border-success/30"
-                          }`}>
-                            {ad.status}
-                          </span>
-                        </div>
+              {/* Current Ads in this campaign (Only shows ads attributed to this campaign id from data/ads.csv) */}
+              {(() => {
+                const targetCid = reportData.campaign?.id?.trim().toUpperCase();
+                const campaignAds = (reportData.ads || []).filter(
+                  (ad) => ad.campaignId?.trim().toUpperCase() === targetCid
+                );
+
+                return (
+                  <div className="rounded-2xl border border-border/60 bg-card/40 p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                        <TrendingUp className="h-4 w-4 text-primary" /> Attributed Ads for {reportData.campaign?.id}
+                      </h3>
+                      <span className="text-xs text-muted-foreground font-mono">{campaignAds.length} total</span>
+                    </div>
+                    {campaignAds.length > 0 ? (
+                      <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+                        {campaignAds.map((ad) => {
+                          const isPaused = ad.status.toLowerCase() === "paused";
+                          return (
+                            <div
+                              key={ad.id}
+                              className={`p-3 rounded-xl border flex items-center justify-between text-xs transition ${
+                                isPaused ? "border-destructive/30 bg-destructive/5 opacity-75" : "border-border/60 bg-card/60"
+                              }`}
+                            >
+                              <div className="flex items-center gap-3 min-w-0 pr-3">
+                                <span className="font-mono text-primary font-bold shrink-0">{ad.id}</span>
+                                <span className="font-medium text-foreground truncate">{ad.headline}</span>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className="font-mono text-muted-foreground">Score: {ad.qualityScore}</span>
+                                <span className={`px-2 py-0.5 rounded-full capitalize text-[10px] font-semibold border ${
+                                  isPaused ? "bg-warning/15 text-warning border-warning/30" : "bg-success/15 text-success border-success/30"
+                                }`}>
+                                  {ad.status}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
+                    ) : (
+                      <div className="p-4 text-center text-xs text-muted-foreground">
+                        No ads found in ads.csv attributed to {reportData.campaign?.id}.
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Optimization Audit Trail / Change Logs */}
               <div className="rounded-2xl border border-border/60 bg-card/40 p-4 space-y-3">

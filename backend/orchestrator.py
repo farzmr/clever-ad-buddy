@@ -250,8 +250,8 @@ def create_local_fallback_image(headline: str, body: str, filename: str):
 
 def generate_ad_creative_image(prompt: str, headline: str, body: str, filename: str) -> tuple[str, str, str]:
     """
-    Attempts to generate display ad creative via Google Gemini Imagen API.
-    If the API key is missing, or the Gemini Imagen quota limit is reached (or fails),
+    Attempts to generate display ad creative via Google Gemini image models.
+    If the API key is missing, or the Gemini image generation quota limit is reached (or fails),
     it automatically falls back to high-resolution Python PIL rendering.
     
     Returns:
@@ -265,33 +265,55 @@ def generate_ad_creative_image(prompt: str, headline: str, body: str, filename: 
     api_key = os.getenv("GEMINI_API_KEY")
     if api_key and api_key.strip() and api_key.strip() != "your_gemini_api_key_here":
         try:
-            print("[Image Gen] Attempting Google Gemini Imagen 3 generation...")
+            print("[Image Gen] Attempting Google Gemini generation with API key...")
             from google import genai
             from google.genai import types
             from io import BytesIO
             from PIL import Image
 
             client = genai.Client(api_key=api_key.strip())
-            response = client.models.generate_images(
-                model='imagen-3.0-generate-002',
-                prompt=prompt or f"Display advertisement banner background for {headline}. Clean modern commercial lighting.",
-                config=types.GenerateImagesConfig(
-                    number_of_images=1,
-                    aspect_ratio="1:1",
-                    output_mime_type="image/png"
+            
+            # Try Gemini Flash Image first
+            img_prompt = prompt or f"Display advertisement banner background for {headline}. Clean modern commercial lighting, professional product photography."
+            try:
+                resp = client.models.generate_content(
+                    model='gemini-3.1-flash-image',
+                    contents=img_prompt
                 )
-            )
-            if response.generated_images:
-                image_bytes = response.generated_images[0].image.image_bytes
-                img = Image.open(BytesIO(image_bytes)).resize((600, 600))
-                img.save(filepath)
-                return filepath, "gemini_imagen", "Generated using Google Gemini Imagen 3."
+                if resp.candidates and resp.candidates[0].content and resp.candidates[0].content.parts:
+                    for part in resp.candidates[0].content.parts:
+                        if hasattr(part, 'inline_data') and part.inline_data:
+                            img = Image.open(BytesIO(part.inline_data.data)).resize((600, 600))
+                            img.save(filepath)
+                            return filepath, "gemini_imagen", "Generated using Google Gemini 3.1 Flash Image."
+            except Exception as e_flash:
+                print(f"[Image Gen] gemini-3.1-flash-image: {e_flash}")
+
+            # Try Imagen
+            try:
+                response = client.models.generate_images(
+                    model='imagen-3.0-generate-002',
+                    prompt=img_prompt,
+                    config=types.GenerateImagesConfig(
+                        number_of_images=1,
+                        aspect_ratio="1:1",
+                        output_mime_type="image/png"
+                    )
+                )
+                if response.generated_images:
+                    image_bytes = response.generated_images[0].image.image_bytes
+                    img = Image.open(BytesIO(image_bytes)).resize((600, 600))
+                    img.save(filepath)
+                    return filepath, "gemini_imagen", "Generated using Google Gemini Imagen 3."
+            except Exception as e_img:
+                print(f"[Image Gen] imagen-3.0-generate-002: {e_img}")
+
         except Exception as e:
-            print(f"[Image Gen] Gemini Imagen quota reached or unavailable ({e}). Falling back to Python PIL.")
+            print(f"[Image Gen] Gemini API quota reached or unavailable ({e}). Falling back to Python PIL.")
 
     # Python PIL Fallback
     create_local_fallback_image(headline, body, filename)
-    notice = "You reached the maximum Gemini image generation quota (or Gemini API key was not configured). The creative engine automatically rendered this asset using Python PIL."
+    notice = "You reached the maximum Gemini image generation quota (Free Tier limit: 0 for image models). The creative engine automatically rendered this asset using Python PIL."
     return filepath, "python_fallback", notice
 
 def execute_fallback_optimization(campaign_id: str, focus: str = "conversion") -> dict:

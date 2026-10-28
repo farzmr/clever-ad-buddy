@@ -59,21 +59,22 @@ def get_campaign_ads_data(campaign_id: str):
     if not os.path.exists(ADS_FILE):
         return []
     df = pd.read_csv(ADS_FILE)
-    camp_ads = df[df["campaign_id"].astype(str) == str(campaign_id)]
+    # Strictly filter rows where campaign_id matches
+    camp_ads = df[df["campaign_id"].astype(str).str.strip().str.upper() == str(campaign_id).strip().upper()]
     
     ads = []
     for _, row in camp_ads.iterrows():
-        ad_id = str(row.get("ad_id"))
+        ad_id = str(row.get("ad_id")).strip()
         analysis = get_ad_analysis(ad_id, str(row.get("headline")), str(row.get("body_text")))
         ads.append({
             "id": ad_id,
-            "campaignId": str(row.get("campaign_id")),
+            "campaignId": str(row.get("campaign_id")).strip(),
             "headline": str(row.get("headline", "")),
             "body": str(row.get("body_text", "")),
             "cta": str(row.get("cta", "Learn More")),
             "imageSize": str(row.get("image_size", "300x250")),
             "imageUrl": str(row.get("image_url", "")),
-            "status": str(row.get("status", "active")),
+            "status": str(row.get("status", "active")).strip(),
             "qualityScore": analysis["quality"],
             "flagged": analysis["flagged"],
             "improvements": analysis["recommendations"],

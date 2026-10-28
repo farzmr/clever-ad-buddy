@@ -84,19 +84,6 @@ export function AutomationActions({ generatedAds: passedAds, appliedChanges: pas
         </div>
       )}
 
-      {/* Quota Notice if Python rendering was used instead of Gemini */}
-      {isPythonFallback && (
-        <div className="p-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 text-xs text-amber-700 dark:text-amber-300 flex items-start gap-3">
-          <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-          <div className="leading-relaxed">
-            <strong className="font-semibold text-amber-800 dark:text-amber-200 block text-xs uppercase tracking-wider mb-0.5">
-              Notice: Reached Gemini Image Generation Quota
-            </strong>
-            You reached the maximum Gemini image generation quota (or your Gemini API key does not have Imagen access enabled). The creative engine automatically fell back to Python image generation to create your display asset without interruption.
-          </div>
-        </div>
-      )}
-
       {/* Side-by-Side Unified Grid: Left = Generated Ad, Right = The 3 Applied Changes */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         {/* Left Column: Generated Ad Card (Span 5 on large screens, matching height) */}
@@ -230,6 +217,19 @@ export function AutomationActions({ generatedAds: passedAds, appliedChanges: pas
           </div>
         </div>
       </div>
+
+      {/* Quota Notice if Python rendering was used instead of Gemini — Positioned at the bottom */}
+      {isPythonFallback && (
+        <div className="p-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 text-xs text-amber-700 dark:text-amber-300 flex items-start gap-3">
+          <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+          <div className="leading-relaxed">
+            <strong className="font-semibold text-amber-800 dark:text-amber-200 block text-xs uppercase tracking-wider mb-0.5">
+              Notice: Reached Gemini Image Generation Quota
+            </strong>
+            You reached the maximum Gemini image generation quota (Free Tier quota is 0 for image models). The creative engine automatically used high-resolution Python image generation to render this ad creative.
+          </div>
+        </div>
+      )}
     </section>
   );
 }
