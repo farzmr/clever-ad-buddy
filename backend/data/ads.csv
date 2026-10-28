@@ -9,7 +9,7 @@ A007,C002,Power Your Life,Upgrade your devices today.,Learn More,320x50,images/A
 A008,C002,Smart Savings,Save big on top brands.,Shop Now,160x600,images/A008.png,display,active,urgent,text-heavy
 A009,C003,Your Story Starts Here,Build your brand with us.,Learn More,728x90,images/A009.png,display,active,emotional,lifestyle
 A010,C003,Moments That Matter,Connect with what matters.,Discover More,300x250,images/A010.png,display,active,emotional,lifestyle
-A011,C003,Live Beautifully,Inspiring stories every day.,Explore Now,160x600,images/A011.png,display,active,informational,product
+A011,C003,Live Beautifully,Inspiring stories every day.,Explore Now,160x600,images/A011.png,display,paused,informational,product
 A012,C003,Feel the Difference,Be part of something bigger.,Learn More,320x50,images/A012.png,display,active,playful,lifestyle
 A013,C004,See What's Next,Reach millions who matter.,Watch Now,300x250,images/A013.png,display,active,informational,lifestyle
 A014,C004,Discover More,"Your brand, amplified.",Learn More,728x90,images/A014.png,display,active,emotional,promo
@@ -20,3 +20,5 @@ A018,C005,Ideas Worth Clicking,Get more readers today.,Learn More,320x50,images/
 A019,C005,Daily Inspiration,Clicks that convert.,Explore Now,300x250,images/A019.png,display,active,emotional,lifestyle
 A020,C005,Explore More Today,Grow your audience fast.,Get Started,160x600,images/A020.png,display,active,urgent,promo
 A021,C001,Your Fresh Style Awaits,Explore our vibrant new collection and redefine your look.,Learn More,300x250,images/A021.png,display,active,conversational,lifestyle
+A022,C003,Your Story Starts Here,Connect with what matters most. Discover handcrafted moments designed to inspire.,Discover More,300x250,/api/images/ad_new_C003.png,display,active,conversational,lifestyle
+A023,C003,Your Story Starts Here,Connect with what matters most. Discover handcrafted moments designed to inspire.,Discover More,300x250,/api/images/ad_new_C003.png,display,active,conversational,lifestyle

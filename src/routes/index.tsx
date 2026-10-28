@@ -184,34 +184,6 @@ function Index() {
               Pick a campaign, choose your focus, and let the agents analyze creative,
               segment performance, and rewrite your media plan — automatically.
             </p>
-
-            {selectedCampaign && (
-              <div className="mt-8 p-4 rounded-2xl border border-border/60 bg-card/40 backdrop-blur-sm max-w-xl flex items-center justify-between">
-                <div>
-                  <div className="text-xs uppercase tracking-wider text-muted-foreground">Currently Selected</div>
-                  <div className="font-semibold text-foreground text-sm mt-0.5">
-                    {selectedCampaign.id} — {selectedCampaign.name}
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {(selectedCampaign as any).device || "All Devices"} · ${(selectedCampaign.budget || 0).toLocaleString()} budget
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleOpenReport(selectedCampaign.id)}
-                    className="text-xs font-medium"
-                  >
-                    <BarChart3 className="h-3.5 w-3.5 mr-1 text-primary" />
-                    View Report
-                  </Button>
-                  <Badge variant="outline" className="border-primary/40 text-primary capitalize text-xs">
-                    {selectedCampaign.status}
-                  </Badge>
-                </div>
-              </div>
-            )}
           </div>
 
           <div className="glass rounded-3xl p-6">
@@ -235,31 +207,43 @@ function Index() {
               </div>
 
               <div>
-                <Label className="text-xs mb-1.5 block">Optimization focus</Label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <Label className="text-xs mb-2 block font-medium">Optimization focus</Label>
+                <div className="space-y-2.5">
                   {(Object.keys(focusMeta) as Focus[]).map((k) => {
                     const item = focusMeta[k];
                     const Icon = item.icon;
                     const active = focus === k;
                     return (
-                      <button
+                      <div
                         key={k}
-                        type="button"
                         onClick={() => setFocus(k)}
-                        className={`rounded-2xl border p-3 text-left transition flex flex-col justify-between gap-1.5 ${
+                        className={`group flex items-start gap-3 p-3.5 rounded-2xl border cursor-pointer transition select-none ${
                           active
-                            ? "border-primary bg-primary/10 text-primary shadow-sm ring-1 ring-primary/30"
-                            : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground bg-card/40"
+                            ? "border-primary bg-primary/10 shadow-sm ring-1 ring-primary/30"
+                            : "border-border/60 bg-card/40 hover:border-primary/40 hover:bg-card/70"
                         }`}
                       >
-                        <div className="flex items-center gap-1.5 font-bold text-xs text-foreground">
-                          <Icon className={`h-4 w-4 ${active ? "text-primary" : "text-muted-foreground"}`} />
-                          <span>{item.label}</span>
+                        <div className="mt-0.5 shrink-0">
+                          <div
+                            className={`h-4 w-4 rounded-full border flex items-center justify-center transition ${
+                              active ? "border-primary" : "border-muted-foreground/40 group-hover:border-primary/60"
+                            }`}
+                          >
+                            {active && <div className="h-2 w-2 rounded-full bg-primary" />}
+                          </div>
                         </div>
-                        <p className="text-[10px] text-muted-foreground leading-tight">
-                          {item.desc}
-                        </p>
-                      </button>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <Icon className={`h-4 w-4 shrink-0 ${active ? "text-primary" : "text-muted-foreground"}`} />
+                            <span className={`text-xs font-semibold ${active ? "text-primary" : "text-foreground"}`}>
+                              {item.label}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">
+                            {item.desc}
+                          </p>
+                        </div>
+                      </div>
                     );
                   })}
                 </div>
@@ -364,12 +348,12 @@ function Index() {
                 <DialogTitle className="text-2xl font-bold mt-1 text-foreground">
                   {reportData?.campaign?.name || "Campaign Report"}
                 </DialogTitle>
-                <div className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
-                  <span className="font-mono text-primary font-semibold">{reportData?.campaign?.id}</span>
+                <div className="text-xs text-muted-foreground mt-1 flex items-center gap-2 flex-wrap">
+                  <span className="font-mono text-primary font-semibold">{reportData?.campaign?.id || selectedId}</span>
                   <span>·</span>
-                  <span>Targeting: <strong className="text-foreground capitalize">{reportData?.campaign?.device}</strong> ({reportData?.campaign?.timeOfDay})</span>
+                  <span>Targeting: <strong className="text-foreground capitalize">{reportData?.campaign?.device || "All"}</strong> ({reportData?.campaign?.timeOfDay || "All"})</span>
                   <span>·</span>
-                  <span>Budget: <strong className="text-foreground">${reportData?.campaign?.budget?.toLocaleString()}</strong></span>
+                  <span>Budget: <strong className="text-foreground">${Number(reportData?.campaign?.budget || 0).toLocaleString()}</strong></span>
                 </div>
               </div>
               {reportData?.campaign?.id && (
@@ -397,75 +381,75 @@ function Index() {
                 <div className="p-3.5 rounded-2xl border border-border/60 bg-card/60">
                   <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Total Spend</div>
                   <div className="text-lg font-bold font-mono text-foreground mt-0.5">
-                    ${reportData.summary.totalSpend.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    ${Number(reportData.summary?.totalSpend || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </div>
                 </div>
                 <div className="p-3.5 rounded-2xl border border-border/60 bg-card/60">
                   <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Conversions</div>
                   <div className="text-lg font-bold font-mono text-foreground mt-0.5">
-                    {reportData.summary.totalConversions.toLocaleString()}
+                    {Number(reportData.summary?.totalConversions || 0).toLocaleString()}
                   </div>
                   <div className="text-[10px] text-muted-foreground mt-0.5 font-mono">
-                    CPA: ${reportData.summary.cpc.toFixed(2)}
+                    CPA: ${Number(reportData.summary?.cpc || 0).toFixed(2)}
                   </div>
                 </div>
                 <div className="p-3.5 rounded-2xl border border-border/60 bg-card/60">
                   <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Total Clicks</div>
                   <div className="text-lg font-bold font-mono text-foreground mt-0.5">
-                    {reportData.summary.totalClicks.toLocaleString()}
+                    {Number(reportData.summary?.totalClicks || 0).toLocaleString()}
                   </div>
                   <div className="text-[10px] text-muted-foreground mt-0.5 font-mono">
-                    CTR: {reportData.summary.ctr.toFixed(2)}%
+                    CTR: {Number(reportData.summary?.ctr || 0).toFixed(2)}%
                   </div>
                 </div>
                 <div className="p-3.5 rounded-2xl border border-border/60 bg-card/60">
                   <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Ad Set Health</div>
                   <div className="text-lg font-bold font-mono text-foreground mt-0.5">
-                    <span className="text-success">{reportData.summary.activeAdsCount}</span>
+                    <span className="text-success">{Number(reportData.summary?.activeAdsCount || 0)}</span>
                     <span className="text-muted-foreground text-sm font-normal"> active</span>
                   </div>
                   <div className="text-[10px] text-muted-foreground mt-0.5">
-                    {reportData.summary.pausedAdsCount} paused by optimizer
+                    {Number(reportData.summary?.pausedAdsCount || 0)} paused by optimizer
                   </div>
                 </div>
               </div>
 
               {/* Current Ads in this campaign (Only shows ads attributed to this campaign id from data/ads.csv) */}
               {(() => {
-                const targetCid = reportData.campaign?.id?.trim().toUpperCase();
+                const targetCid = (reportData.campaign?.id || "").trim().toUpperCase();
                 const campaignAds = (reportData.ads || []).filter(
-                  (ad) => ad.campaignId?.trim().toUpperCase() === targetCid
+                  (ad) => (ad.campaignId || "").trim().toUpperCase() === targetCid
                 );
 
                 return (
                   <div className="rounded-2xl border border-border/60 bg-card/40 p-4 space-y-3">
                     <div className="flex items-center justify-between">
                       <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-                        <TrendingUp className="h-4 w-4 text-primary" /> Attributed Ads for {reportData.campaign?.id}
+                        <TrendingUp className="h-4 w-4 text-primary" /> Attributed Ads for {reportData.campaign?.id || "Campaign"}
                       </h3>
                       <span className="text-xs text-muted-foreground font-mono">{campaignAds.length} total</span>
                     </div>
                     {campaignAds.length > 0 ? (
                       <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
-                        {campaignAds.map((ad) => {
-                          const isPaused = ad.status.toLowerCase() === "paused";
+                        {campaignAds.map((ad, aIdx) => {
+                          const isPaused = (ad.status || "").toLowerCase() === "paused";
                           return (
                             <div
-                              key={ad.id}
+                              key={ad.id || `ad-${aIdx}`}
                               className={`p-3 rounded-xl border flex items-center justify-between text-xs transition ${
                                 isPaused ? "border-destructive/30 bg-destructive/5 opacity-75" : "border-border/60 bg-card/60"
                               }`}
                             >
                               <div className="flex items-center gap-3 min-w-0 pr-3">
                                 <span className="font-mono text-primary font-bold shrink-0">{ad.id}</span>
-                                <span className="font-medium text-foreground truncate">{ad.headline}</span>
+                                <span className="font-medium text-foreground truncate">{ad.headline || "Ad Creative"}</span>
                               </div>
                               <div className="flex items-center gap-2 shrink-0">
-                                <span className="font-mono text-muted-foreground">Score: {ad.qualityScore}</span>
+                                <span className="font-mono text-muted-foreground">Score: {ad.qualityScore ?? "—"}</span>
                                 <span className={`px-2 py-0.5 rounded-full capitalize text-[10px] font-semibold border ${
                                   isPaused ? "bg-warning/15 text-warning border-warning/30" : "bg-success/15 text-success border-success/30"
                                 }`}>
-                                  {ad.status}
+                                  {ad.status || "active"}
                                 </span>
                               </div>
                             </div>
@@ -474,7 +458,7 @@ function Index() {
                       </div>
                     ) : (
                       <div className="p-4 text-center text-xs text-muted-foreground">
-                        No ads found in ads.csv attributed to {reportData.campaign?.id}.
+                        No ads found in ads.csv attributed to {reportData.campaign?.id || "this campaign"}.
                       </div>
                     )}
                   </div>
@@ -492,17 +476,30 @@ function Index() {
 
                 {reportData.changes && reportData.changes.length > 0 ? (
                   <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
-                    {reportData.changes.map((log) => (
-                      <div key={log.logId} className="p-2.5 rounded-xl border border-border/40 bg-card/60 text-xs flex items-start gap-2.5">
-                        <CheckCircle2 className="h-4 w-4 text-success shrink-0 mt-0.5" />
-                        <div className="min-w-0 flex-1">
-                          <div className="font-medium text-foreground">{log.details}</div>
-                          <div className="text-[10px] text-muted-foreground mt-0.5 font-mono">
-                            {log.changeType} · Target: {log.targetId} · {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {reportData.changes.map((log, lIdx) => {
+                      let timeStr = "Recently";
+                      try {
+                        if (log.timestamp) {
+                          const d = new Date(log.timestamp);
+                          if (!isNaN(d.getTime())) {
+                            timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                          }
+                        }
+                      } catch {
+                        timeStr = "Recently";
+                      }
+                      return (
+                        <div key={log.logId || `log-${lIdx}`} className="p-2.5 rounded-xl border border-border/40 bg-card/60 text-xs flex items-start gap-2.5">
+                          <CheckCircle2 className="h-4 w-4 text-success shrink-0 mt-0.5" />
+                          <div className="min-w-0 flex-1">
+                            <div className="font-medium text-foreground">{log.details || "Optimization step executed"}</div>
+                            <div className="text-[10px] text-muted-foreground mt-0.5 font-mono">
+                              {log.changeType || "system"} · Target: {log.targetId || "N/A"} · {timeStr}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="p-4 rounded-xl border border-dashed border-border text-center text-xs text-muted-foreground">

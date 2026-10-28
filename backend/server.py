@@ -139,8 +139,15 @@ def get_campaign_performance_data_response(campaign_id: str, focus: str = "conve
     }
 
 def get_campaign_report_data(campaign_id: str):
-    camps = [c for c in list_campaigns_data() if c["id"] == campaign_id]
-    camp = camps[0] if camps else None
+    camps = [c for c in list_campaigns_data() if str(c["id"]).strip().upper() == str(campaign_id).strip().upper()]
+    camp = camps[0] if camps else {
+        "id": campaign_id,
+        "name": f"Campaign {campaign_id}",
+        "budget": 5000,
+        "status": "active",
+        "device": "all",
+        "timeOfDay": "all"
+    }
     
     ads = get_campaign_ads_data(campaign_id)
     
@@ -158,15 +165,17 @@ def get_campaign_report_data(campaign_id: str):
     if os.path.exists(CHANGELOG_FILE):
         try:
             ch_df = pd.read_csv(CHANGELOG_FILE)
-            ch_match = ch_df[ch_df["campaign_id"].astype(str) == str(campaign_id)]
-            for _, r in ch_match.iterrows():
-                changes.append({
-                    "logId": str(r.get("log_id")),
-                    "timestamp": str(r.get("timestamp")),
-                    "changeType": str(r.get("change_type")),
-                    "targetId": str(r.get("target_id")),
-                    "details": str(r.get("details"))
-                })
+            if not ch_df.empty and "campaign_id" in ch_df.columns:
+                ch_df = ch_df.dropna(subset=["log_id", "campaign_id"])
+                ch_match = ch_df[ch_df["campaign_id"].astype(str).str.strip().str.upper() == str(campaign_id).strip().upper()]
+                for _, r in ch_match.iterrows():
+                    changes.append({
+                        "logId": str(r.get("log_id", "")),
+                        "timestamp": str(r.get("timestamp", "")),
+                        "changeType": str(r.get("change_type", "update")),
+                        "targetId": str(r.get("target_id", "")),
+                        "details": str(r.get("details", ""))
+                    })
         except Exception:
             pass
             
