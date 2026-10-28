@@ -1,7 +1,17 @@
 import os
 import sys
 import asyncio
+import re
 import pandas as pd
+
+def normalize_campaign_id(cid: str) -> str:
+    if not cid:
+        return "C001"
+    cid = str(cid).strip().upper()
+    m = re.match(r"^C0*(\d+)$", cid, re.I)
+    if m:
+        return f"C{int(m.group(1)):03d}"
+    return cid
 try:
     from dotenv import load_dotenv
     load_dotenv()
@@ -181,6 +191,7 @@ def get_best_worst_segments(grouped_df, objective="conversions"):
     return best_row.to_dict(), worst_row.to_dict()
 
 def write_changelog(campaign_id: str, change_type: str, target_id: str, details: str):
+    campaign_id = normalize_campaign_id(campaign_id)
     import datetime
     os.makedirs(DATA_DIR, exist_ok=True)
     df = pd.read_csv(CHANGELOG_FILE) if os.path.exists(CHANGELOG_FILE) else pd.DataFrame(columns=["log_id", "timestamp", "campaign_id", "change_type", "target_id", "details"])
@@ -318,9 +329,11 @@ def generate_ad_creative_image(prompt: str, headline: str, body: str, filename: 
 
 def execute_fallback_optimization(campaign_id: str, focus: str = "conversion") -> dict:
     """Executes deterministic optimization adhering to adtech rules when Gemini API is unavailable."""
+    campaign_id = normalize_campaign_id(campaign_id)
     # 1. Load data
     c_df = pd.read_csv(CAMPAIGNS_FILE)
-    camp = c_df[c_df["campaign_id"] == campaign_id].iloc[0]
+    matching_camps = c_df[c_df["campaign_id"].astype(str).apply(normalize_campaign_id) == campaign_id]
+    camp = matching_camps.iloc[0] if not matching_camps.empty else c_df.iloc[0]
     ads_df = pd.read_csv(ADS_FILE)
     camp_ads = ads_df[ads_df["campaign_id"] == campaign_id].copy()
     
@@ -437,6 +450,7 @@ def execute_fallback_optimization(campaign_id: str, focus: str = "conversion") -
 
 async def run_optimization_workflow(campaign_id: str, focus: str = "conversion") -> dict:
     """Runs live ADK agent optimization if GEMINI_API_KEY is present; otherwise runs fallback."""
+    campaign_id = normalize_campaign_id(campaign_id)
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key or api_key.strip() == "your_gemini_api_key_here":
         print("[Orchestrator] GEMINI_API_KEY not found or default. Running deterministic fallback optimization.")

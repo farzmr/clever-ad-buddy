@@ -1,1 +1,4 @@
 log_id,timestamp,campaign_id,change_type,target_id,details
+L001,2026-10-28T12:36:12.100214,C001,update_ad_status,A003,Paused lowest-performing ad (Score: 38)
+L002,2026-10-28T12:36:12.129331,C001,create_ad,A022,Created new ad with headline: 'Redefine Your Style This Season'
+L003,2026-10-28T12:36:12.152978,C001,update_campaign_targeting,C001,"Updated targeting to device: 'mobile', time_of_day: 'afternoon'"

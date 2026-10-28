@@ -2,7 +2,7 @@ import "@/lib/fonts";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { z } from "zod";
-import { fetchCampaigns, triggerOptimization, type OptimizeResponse } from "@/lib/api";
+import { fetchCampaigns, triggerOptimization, normalizeCampaignId, type OptimizeResponse } from "@/lib/api";
 import { type Campaign } from "@/lib/mock-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -38,7 +38,8 @@ const focusMeta = {
 
 function OptimizePage() {
   const search = Route.useSearch();
-  const id = search.id as string;
+  const rawId = search.id as string;
+  const id = normalizeCampaignId(rawId);
   const focus = (search.focus ?? "conversion") as Focus;
   const FocusIcon = focusMeta[focus]?.icon || Target;
 

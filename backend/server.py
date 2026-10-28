@@ -34,6 +34,17 @@ from orchestrator import (
     create_local_fallback_image,
 )
 
+import re
+
+def normalize_campaign_id(cid: str) -> str:
+    if not cid:
+        return "C001"
+    cid = str(cid).strip().upper()
+    m = re.match(r"^C0*(\d+)$", cid, re.I)
+    if m:
+        return f"C{int(m.group(1)):03d}"
+    return cid
+
 # Core Business Logic Helpers
 def list_campaigns_data():
     if not os.path.exists(CAMPAIGNS_FILE):
@@ -42,7 +53,7 @@ def list_campaigns_data():
     campaigns = []
     for _, row in df.iterrows():
         campaigns.append({
-            "id": str(row.get("campaign_id")),
+            "id": normalize_campaign_id(str(row.get("campaign_id"))),
             "name": str(row.get("name")),
             "objective": str(row.get("objective", "conversion")),
             "channel": str(row.get("channel", "Meta Ads")),
@@ -56,11 +67,12 @@ def list_campaigns_data():
     return campaigns
 
 def get_campaign_ads_data(campaign_id: str):
+    campaign_id = normalize_campaign_id(campaign_id)
     if not os.path.exists(ADS_FILE):
         return []
     df = pd.read_csv(ADS_FILE)
     # Strictly filter rows where campaign_id matches
-    camp_ads = df[df["campaign_id"].astype(str).str.strip().str.upper() == str(campaign_id).strip().upper()]
+    camp_ads = df[df["campaign_id"].astype(str).apply(normalize_campaign_id) == campaign_id]
     
     ads = []
     for _, row in camp_ads.iterrows():
@@ -68,7 +80,7 @@ def get_campaign_ads_data(campaign_id: str):
         analysis = get_ad_analysis(ad_id, str(row.get("headline")), str(row.get("body_text")))
         ads.append({
             "id": ad_id,
-            "campaignId": str(row.get("campaign_id")).strip(),
+            "campaignId": normalize_campaign_id(str(row.get("campaign_id")).strip()),
             "headline": str(row.get("headline", "")),
             "body": str(row.get("body_text", "")),
             "cta": str(row.get("cta", "Learn More")),
@@ -82,6 +94,7 @@ def get_campaign_ads_data(campaign_id: str):
     return ads
 
 def get_campaign_performance_data_response(campaign_id: str, focus: str = "conversion"):
+    campaign_id = normalize_campaign_id(campaign_id)
     grouped_df = get_campaign_performance_data(campaign_id)
     if grouped_df.empty:
         return {"segments": [], "bestSegment": None, "worstSegment": None}
@@ -139,20 +152,23 @@ def get_campaign_performance_data_response(campaign_id: str, focus: str = "conve
     }
 
 def get_campaign_report_data(campaign_id: str):
-    camps = [c for c in list_campaigns_data() if str(c["id"]).strip().upper() == str(campaign_id).strip().upper()]
+    campaign_id = normalize_campaign_id(campaign_id)
+    camps = [c for c in list_campaigns_data() if normalize_campaign_id(c["id"]) == campaign_id]
     camp = camps[0] if camps else {
         "id": campaign_id,
         "name": f"Campaign {campaign_id}",
         "budget": 5000,
         "status": "active",
         "device": "all",
-        "timeOfDay": "all"
+        "timeOfDay": "all",
+        "objective": "conversions",
+        "channel": "Google Display"
     }
     
     ads = get_campaign_ads_data(campaign_id)
     
     perf_df = pd.read_csv(PERFORMANCE_FILE) if os.path.exists(PERFORMANCE_FILE) else pd.DataFrame()
-    camp_perf = perf_df[perf_df["campaign_id"].astype(str).str.strip().str.upper() == str(campaign_id).strip().upper()] if not perf_df.empty else pd.DataFrame()
+    camp_perf = perf_df[perf_df["campaign_id"].astype(str).apply(normalize_campaign_id) == campaign_id] if not perf_df.empty else pd.DataFrame()
     
     total_impressions = int(camp_perf["impressions"].sum()) if not camp_perf.empty else 0
     total_clicks = int(camp_perf["clicks"].sum()) if not camp_perf.empty else 0
@@ -167,7 +183,7 @@ def get_campaign_report_data(campaign_id: str):
             ch_df = pd.read_csv(CHANGELOG_FILE)
             if not ch_df.empty and "campaign_id" in ch_df.columns:
                 ch_df = ch_df.dropna(subset=["log_id", "campaign_id"])
-                ch_match = ch_df[ch_df["campaign_id"].astype(str).str.strip().str.upper() == str(campaign_id).strip().upper()]
+                ch_match = ch_df[ch_df["campaign_id"].astype(str).apply(normalize_campaign_id) == campaign_id]
                 for _, r in ch_match.iterrows():
                     changes.append({
                         "logId": str(r.get("log_id", "")),

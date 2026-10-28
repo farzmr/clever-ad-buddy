@@ -2,7 +2,7 @@ import "@/lib/fonts";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { z } from "zod";
-import { fetchCampaignReport, type CampaignReportResponse } from "@/lib/api";
+import { fetchCampaignReport, normalizeCampaignId, type CampaignReportResponse } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,7 +32,8 @@ export const Route = createFileRoute("/report")({
 
 function ReportPage() {
   const search = Route.useSearch();
-  const campaignId = (search.id as string) || "C001";
+  const rawId = (search.id as string) || "C001";
+  const campaignId = normalizeCampaignId(rawId);
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
@@ -192,9 +193,9 @@ function ReportPage() {
 
             {/* 2. Raw Ads Table for the campaign with filtered columns (from ads.csv) */}
             {(() => {
-              const targetCid = campaignId.trim().toUpperCase();
+              const targetCid = normalizeCampaignId(campaignId);
               const campaignAds = (reportData.ads || []).filter(
-                (ad) => (ad.campaignId || "").trim().toUpperCase() === targetCid
+                (ad) => normalizeCampaignId(ad.campaignId) === targetCid
               );
 
               return (
