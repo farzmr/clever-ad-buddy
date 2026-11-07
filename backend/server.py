@@ -369,7 +369,7 @@ class AdPilotRequestHandler(SimpleHTTPRequestHandler):
         self.wfile.write(body)
 
 def start_server(port=8000):
-    server = ThreadedHTTPServer(("0.0.0.0", port), AdPilotRequestHandler)
+    server = ThreadedHTTPServer(("127.0.0.1", port), AdPilotRequestHandler)
     print(f"⚡ AdPilot Multi-Agent Backend running at http://127.0.0.1:{port}")
     try:
         server.serve_forever()
